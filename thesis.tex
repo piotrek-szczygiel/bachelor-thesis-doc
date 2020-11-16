@@ -267,7 +267,39 @@ Jest to przede wszystkim rozkład prawidłowych oraz nieprawidłowych
 \section{\SectionTitleRealizationAspects}
 \label{sec:wybrane-aspekty-realizacji}
 
+W tym rozdziale przedstawione zostaną sposoby tworzenia poszczególnych zadań.
+Warto dodać również, że zawarte w opisach flagi są przykładowe i w formacie
+\emph{AGH\{nazwa-zadania\}}, aby nie wyjawiać prawdziwych flag użytych w rozgrywce.
+
 \subsection{100-simple}
+
+Pierwszym zadaniem do rozwiązania jest jawne ukrycie flagi w pliku wykonywalnym.
+Zadanie to służyć ma jako pewnego rodzaju rozgrzewka i powinno być stosunkowo
+proste do rozwiązania nawet przez kompletnie początkujących zawodników.
+Poniżej przedstawiona uproszczona\footnote{Uproszczona, czyli zawierająca jedynie
+najważniejsze fragmenty kodu, pozbawiona sprawdzania błędów, definicji funkcji
+pomocniczych, załączania nagłówków itp.} wersja kodu źródłowego.
+
+\begin{minted}{c}
+int main()
+{
+    char input[64];
+
+    printf("Enter the flag: ");
+    fgets(input, sizeof(input), stdin);
+
+    if (strcmp(input, "AGH{100-simple}") == 0) {
+        printf("Correct flag!\n");
+    } else {
+        printf("Incorrect flag!\n");
+    }
+}
+\end{minted}
+
+Jak widać program jedynie co robi, to pobiera wejście od użytkownika, a następnie
+porównuje je z zapisaną na stałe w kodzie flagą. Użytkownik po inspekcji skompilowanego
+pliku wykonywalnego powinien szybko zwrócić uwagę na ciąg znaków wyglądający jak
+rozwiązanie tego zadania.
 
 \subsection{200-game}
 
@@ -294,7 +326,56 @@ Jest to przede wszystkim rozkład prawidłowych oraz nieprawidłowych
 \section{\SectionTitleResults}
 \label{sec:wyniki-projektu}
 
+W tym rozdziale przedstawione zostaną przykładowe sposoby rozwiązania poszczególnych zadań.
+Podobnie jak w rozdziale opisującym proces tworzenia tych zadań, znalezione
+flagi są przykładowe.
+
 \subsection{100-simple}
+
+Po otworzeniu karty z pierwszym zadaniem pobieramy załączony do niego plik - \emph{simple}.
+Sprawdźmy na początku z jakim rodzajem pliku mamy do czynienia.
+
+\begin{minted}[breaklines]{text}
+$ file simple
+simple: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=4bfaf13eb10701fb33b5442a8e17056253509ef1, for GNU/Linux 3.2.0, with debug_info, not stripped
+\end{minted}
+
+Jak widzimy, jest to plik wykonywalny dla 64-bitowego systemu Linux.
+Uruchamiamy więc program, aby sprawdzić jego zachowanie.
+
+\begin{minted}{text}
+$ ./simple
+Enter the flag: test
+Incorrect flag!
+\end{minted}
+
+Na początku rozwiązywania każdego zadania z kategorii Reverse Engineering, warto
+przejrzeć, czy plik wykonywalny nie zawiera jakiś przydatnych ciągów znaków.
+
+\begin{minted}{text}
+$ strings simple
+/lib64/ld-linux-x86-64.so.2
+puts
+__stack_chk_fail
+...
+Enter the flag: 
+AGH{100-simple}
+Correct flag!
+Incorrect flag!
+...
+\end{minted}
+
+Zauważamy ciekawie wyglądający ciąg znaków \emph{AGH\{100-simple\}}.
+Uruchommy więc program jeszcze raz, podając mu ten napis na wejście.
+
+\begin{minted}{text}
+$ ./simple
+Enter the flag: AGH{100-simple}
+Correct flag!
+\end{minted}
+
+Otrzymujemy informację, że jest to prawidłowa flaga.
+Po wpisaniu go na stronie zadania otrzymujemy informację, że jest to prawidłowe rozwiązanie.
 
 \subsection{200-game}
 
