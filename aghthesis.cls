@@ -26,7 +26,7 @@
 	\newcommand*{\SectionTitleScope}{Zakres funkcjonalno\'sci}	
 	\newcommand*{\SectionTitleRealizationAspects}{Wybrane aspekty realizacji}
 	\newcommand*{\SectionTitleWorkOrganization}{Organizacja pracy}
-	\newcommand*{\SectionTitleResults}{Wyniki projektu}	
+	\newcommand*{\SectionTitleResults}{Przykłady rozwiązań zadań}	
 }
 
 \DeclareOption{english}

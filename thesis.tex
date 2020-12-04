@@ -4,6 +4,10 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{minted}
+\usepackage{float}
+\usepackage{perpage}
+
+\MakePerPage{footnote}
 
 \graphicspath{ {./images/} }
 
@@ -35,7 +39,7 @@ bezpieczeństwa komputerowego. Ich celem zwykle jest edukacja uczestników
 o zabezpieczeniach systemów oraz możliwość pokazania im jak reagować
 na wypadek wystąpienia rzeczywistych ataków. Zawody takie podzielone są zazwyczaj
 na poszczególne zadania z różnych kategorii. Aby rozwiązać takie zadanie należy
-znaleźć "flagę", którą następnie podaje się w interfejsie udostępnionym przez
+znaleźć ,,flagę'', którą następnie podaje się w interfejsie udostępnionym przez
 organizatora zawodów. Flagą w tym wypadku jest ciąg znaków, który możemy uzyskać
 poprzez rozwiązanie zadania. Przykładowo w najprostszych zadaniach
 z dziedziny eksploitacji stron internetowych, flagę możemy znaleźć klikając
@@ -111,18 +115,17 @@ przygotować wyzwania oparte o zadania tylko z tej kategorii.
 Zadania będą tworzone w języku C. Jest to powszechnie znany język, który
 z wyłączoną zbyt agresywną optymalizacją ze strony kompilatora, generuje
 w miarę przewidywalny kod maszynowy. Zaletą tego jest to, że narzędzia
-do debugowania, dezasemblacji oraz wykonywania innych analiz programów
+do debugowania, deasemblacji oraz wykonywania innych analiz programów
 dobrze radzą sobie z takimi plikami. Dzięki temu język ten
 zapewni nam kontrolę nad tym w jakim stopniu graczowi ułatwimy
 lub utrudnimy rozgrywkę. W celu zapewnienia większej różnorodności
 środowisk korzystać będziemy zarówno z systemu Windows jak i Linux.
 
 Do rozwiązywania zadań posłużymy się różnorodnymi rodzajami narzędzi.
-Poczynając od linuxowych programów linii poleceń takich jak \emph{strings}
-czy \emph{gdb}, pisania własnych narzędzi w języku \emph{Python},
+Poczynając od linuksowych programów linii poleceń takich jak \mintinline{bash}{strings}
+czy \mintinline{bash}{gdb}, pisania własnych narzędzi w języku \emph{Python},
 czy w końcu korzystając z pełnoprawnych narzędzi z interfejsem graficznym takich
-jak używana przez NSA \emph{Ghidra}, \emph{Cutter}, czy debugger dla systemu
-Windows \emph{RemedyBG}.
+jak \emph{Cutter}, czy używana przez NSA \emph{Ghidra}.
 
 \clearpage
 
@@ -167,7 +170,7 @@ każda zainteresowana osoba będzie mogła spróbować swoich sił.
 
 \begin{figure}[ht]
     Poniżej przedstawiony jest interfejs rejestracji nowego użytkownika.
-    Nie będzie to nic skomplikowanego - wystarczy podać login, email oraz hasło.
+    Nie będzie to nic skomplikowanego -- wystarczy podać login, email oraz hasło.
 
     \vspace{1cm}
 
@@ -270,10 +273,12 @@ Jest to przede wszystkim rozkład prawidłowych oraz nieprawidłowych
 W tym rozdziale przedstawione zostaną sposoby tworzenia poszczególnych zadań.
 Warto dodać również, że zawarte w opisach flagi są przykładowe i w formacie
 \emph{AGH\{nazwa-zadania\}}, aby nie wyjawiać prawdziwych flag użytych w rozgrywce.
+Przykładowe rozwiązania zadań znajdują się w rozdziale 5 -- \nameref{sec:wyniki-projektu}.
 
-\subsection{100-simple}
+\subsection{Zadanie 100-simple}
 
-Pierwszym zadaniem do rozwiązania jest jawne ukrycie flagi w pliku wykonywalnym.
+Pierwszym zadaniem jest odnalezienie flagi wprost umieszczonej
+w pliku wykonywalnym jako ciąg znaków.
 Zadanie to służyć ma jako pewnego rodzaju rozgrzewka i powinno być stosunkowo
 proste do rozwiązania nawet przez kompletnie początkujących zawodników.
 Poniżej przedstawiona uproszczona\footnote{Uproszczona, czyli zawierająca jedynie
@@ -287,29 +292,113 @@ int main()
 
     printf("Enter the flag: ");
     fgets(input, sizeof(input), stdin);
+    input[strlen(input) - 1] = '\0';
 
     if (strcmp(input, "AGH{100-simple}") == 0) {
         printf("Correct flag!\n");
     } else {
         printf("Incorrect flag!\n");
     }
+
+    return 0;
 }
 \end{minted}
 
 Jak widać program jedynie co robi, to pobiera wejście od użytkownika, a następnie
 porównuje je z zapisaną na stałe w kodzie flagą. Użytkownik po inspekcji skompilowanego
-pliku wykonywalnego powinien szybko zwrócić uwagę na ciąg znaków wyglądający jak
-rozwiązanie tego zadania.
+pliku wykonywalnego komendą \mintinline{bash}{strings} powinien szybko zwrócić uwagę na
+ciąg znaków wyglądający jak rozwiązanie tego zadania.
+\clearpage
 
-\subsection{200-game}
+\subsection{Zadanie 200-game}
 
-\subsection{300-strcmp}
+W drugim zadaniu flaga będzie odszyfrowana zaraz po uruchomieniu programu. Zadaniem
+użytkownika będzie odnalezienie tej flagi poprzez debugowanie lub modyfikacje
+pliku wykonywalnego w celu zmiany zachowania programu.
 
-\subsection{400-decrypt}
+Sam program będzie działać w graficznym środowisku systemu Windows.
+Do obsługi okienek i innych aspektów graficznych wykorzystana została
+biblioteka raylib \cite{raylib}.
+Poniżej przedstawiony kod programu z pominięciem funkcji \emph{decrypt\_flag}.
 
-\subsection{500-secret-shell}
+\begin{minted}[breaklines]{c}
+bool show_flag()
+{
+    return false;
+}
 
-\subsection{600-custom-vm}
+int main()
+{
+    if (show_flag()) {
+        decrypt_flag();
+    }
+
+    SetTraceLogLevel(LOG_ERROR);
+    InitWindow(460, 40, "200-game");
+    SetTargetFPS(60);
+
+    while (!WindowShouldClose()) {
+        BeginDrawing();
+        ClearBackground(BLACK);
+
+        if (show_flag()) {
+            DrawText((const char*)flag, 10, 10, 20, GREEN);
+        } else {
+            DrawText("You have not unlocked access to the flag!", 10, 10, 20, RED);
+        }
+
+        EndDrawing();
+    }
+
+    CloseWindow();
+    return 0;
+}
+\end{minted}
+
+Sednem całego zadania jest funkcja \emph{show\_flag}, która kontroluje czy rozwiązanie
+ukaże się użytkownikowi oraz czy flaga w ogóle zostanie odszyfrowana.
+Jeśli chodzi o samo szyfrowanie flagi, użyte zostało do tego narzędzie\footnote{zerosum0x0: Obfuscated String/Shellcode Generator - Online Tool \url{https://zerosum0x0.blogspot.com/2017/08/obfuscatedencrypted-cc-online-string.html}} 
+pozwalające zamienić ciąg znaków na tablice bajtów wraz z algorytmem odszyfrowującym.
+Poniżej przedstawiony fragment wyniku działania takiego narzędzia.
+
+\begin{minted}{c}
+unsigned char flag[] = {
+    0xa6, 0x40, 0x70, 0x2b, 0x6e, 0xed, 0x80,
+    0x19, 0x36, 0xe1, 0x8a, 0xcd, 0x98, 0xa2
+};
+
+void decrypt_flag()
+{
+    for (unsigned int m = 0; m < sizeof(flag); ++m) {
+        unsigned char c = flag[m];
+        c = (c >> 0x1) | (c << 0x7);
+        c ^= 0x74;
+        c = -c;
+        c += 0x3f;
+
+        ...
+
+        c ^= 0xc8;
+        c = ~c;
+        c = -c;
+        c -= 0x51;
+        flag[m] = c;
+    }
+}
+\end{minted}
+
+Odszyfrowanie flagi korzystając z kodu zdekompilowanej funkcji \emph{decrypt\_flag} jest możliwe,
+jednak użytkownik powinien sobie dużo szybciej poradzić z rozwiązaniem zadania prostszymi
+sposobami.
+\clearpage
+
+\subsection{Zadanie 300-strcmp}
+
+\subsection{Zadanie 400-decrypt}
+
+\subsection{Zadanie 500-secret-shell}
+
+\subsection{Zadanie 600-custom-vm}
 
 \clearpage
 
@@ -330,18 +419,19 @@ W tym rozdziale przedstawione zostaną przykładowe sposoby rozwiązania poszcze
 Podobnie jak w rozdziale opisującym proces tworzenia tych zadań, znalezione
 flagi są przykładowe.
 
-\subsection{100-simple}
+\subsection{Zadanie 100-simple}
 
-Po otworzeniu karty z pierwszym zadaniem pobieramy załączony do niego plik - \emph{simple}.
-Sprawdźmy na początku z jakim rodzajem pliku mamy do czynienia.
+Po otworzeniu karty z pierwszym zadaniem uczestnik pobiera załączony do niego
+plik -- \emph{simple}.
+Na początku sprawdza z jakim rodzajem pliku ma do czynienia.
 
 \begin{minted}[breaklines]{text}
 $ file simple
 simple: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=4bfaf13eb10701fb33b5442a8e17056253509ef1, for GNU/Linux 3.2.0, with debug_info, not stripped
 \end{minted}
 
-Jak widzimy, jest to plik wykonywalny dla 64-bitowego systemu Linux.
-Uruchamiamy więc program, aby sprawdzić jego zachowanie.
+Jak zauważa, jest to plik wykonywalny dla 64-bitowego systemu Linux.
+Uruchamia więc program, aby sprawdzić jego zachowanie.
 
 \begin{minted}{text}
 $ ./simple
@@ -365,8 +455,8 @@ Incorrect flag!
 ...
 \end{minted}
 
-Zauważamy ciekawie wyglądający ciąg znaków \emph{AGH\{100-simple\}}.
-Uruchommy więc program jeszcze raz, podając mu ten napis na wejście.
+Zauważa ciekawie wyglądający ciąg znaków \emph{AGH\{100-simple\}}.
+Uruchamia więc program jeszcze raz, podając mu ten ciąg znaków na wejście.
 
 \begin{minted}{text}
 $ ./simple
@@ -374,18 +464,79 @@ Enter the flag: AGH{100-simple}
 Correct flag!
 \end{minted}
 
-Otrzymujemy informację, że jest to prawidłowa flaga.
-Po wpisaniu go na stronie zadania otrzymujemy informację, że jest to prawidłowe rozwiązanie.
+Otrzymuje informację, że jest to prawidłowa flaga.
+Po wpisaniu go na stronie zadania dowiaduje się, że jest to prawidłowe rozwiązanie.
 
-\subsection{200-game}
+\subsection{Zadanie 200-game}
 
-\subsection{300-strcmp}
+Użytkownikowi po pobraniu oraz uruchomieniu załączonego pliku \emph{game.exe} ukazuję
+się następujące okienko.
 
-\subsection{400-decrypt}
+\begin{figure}[H]
+    \centering
+    \includegraphics{200_not_unlocked}
+    \caption{Okienko programu z informacją o braku dostępu do flagi}
+    \label{fig:200_not_unlocked}
+\end{figure}
 
-\subsection{500-secret-shell}
+Użytkownik otwiera plik wykonywalny w programie IDA\footnote{
+Darmowa wersja programu IDA przeznaczona do użytku domowego dostępna do pobrania pod adresem 
+\url{https://www.hex-rays.com/products/ida/support/download_freeware}},
+aby zapoznać się z działaniem programu.
 
-\subsection{600-custom-vm}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=16cm]{200_ida_graph}
+    \caption{Widok grafowy w programie IDA przestawiający główną pętle programu}
+    \label{fig:200_ida_graph}
+\end{figure}
+
+Zauważa on, że wywołanie funkcji o nazwie \emph{\_show\_flag} decyduję o wyborze jednego
+z dwóch węzłów wywołania programu. Biorąc pod uwagę nazwę tej funkcji oraz tekst
+wyświetlany w prawym węźle (\textit{,,You have not unlocked access to the fla''...}), domyśla
+się, że funkcja \emph{\_show\_flag} decyduję o tym czy flaga zostanie wyświetlona użytkownikowi.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics{200_ida_show_flag}
+    \caption{Funkcja \emph{\_show\_flag}}
+    \label{fig:200_ida_show_flag}
+\end{figure}
+
+Jedyne co ta funkcja robi to zwraca liczbę 0 -- czyli \emph{false}.
+Próbuję on więc spatchować\footnote{Patchowanie w tym wypadku oznacza modyfikowanie programu
+wykonywalnego poprzez nadpisanie konkretnych bajtów}
+program, aby funkcja ta zwracała 1 -- czyli \emph{true}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics{200_ida_patch}
+    \caption{Modyfikacja instrukcji, aby zwracała 1 zamiast 0}
+    \label{fig:200_ida_patch}
+\end{figure}
+
+Po zaaplikowaniu patch'a oraz ponownym uruchomieniu programu użytkownikowi ukazuję się
+następujący widok.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics{200_flag}
+    \caption{Okienko programu wraz z otrzymaną flagą}
+    \label{fig:200_flag}
+\end{figure}
+
+Po wpisaniu na stronie flagi \emph{AGH\{200-game\}} użytkownik otrzymuję informację
+o poprawnym rozwiązaniu zadania.
+
+\clearpage
+
+\subsection{Zadanie 300-strcmp}
+
+\subsection{Zadanie 400-decrypt}
+
+\subsection{Zadanie 500-secret-shell}
+
+\subsection{Zadanie 600-custom-vm}
 
 \clearpage
 
