@@ -1,38 +1,33 @@
-\documentclass[polish,12pt]{aghthesis}
-\usepackage[utf8x]{inputenc}
-\usepackage{url}
-\usepackage{graphicx}
-\usepackage{hyperref}
-\usepackage{minted}
-\usepackage{float}
-\usepackage{perpage}
+\documentclass[language=polish,type=eng]{aghmodern}
 
-\MakePerPage{footnote}
+\titleEN{Capture-The-Flag game based on reverse engineering}
+\titlePL{Gra typu Capture-The-Flag oparta o reverse engineering}
+\author{Piotr Szczygieł}
+\faculty{Wydział Informatyki, Elektroniki i Telekomunikacji}
+\department{Katedra Informatyki}
+\supervisor{dr inż. Łukasz Faber}
+\degreeprogramme{Informatyka}
+\degreetype{Stacjonarne}
+\date{2020}
+
+\usepackage[backend=biber,doi=true,url=false]{biblatex}
+\addbibresource{bibliography.bib}
+
+\usepackage{minted}
 
 \graphicspath{ {./images/} }
 
-\author{Piotr Szczygieł}
-
-\titlePL{Gra typu Capture-The-Flag\\ oparta o reverse engineering}
-\titleEN{Capture-The-Flag game based on reverse engineering}
-
-\fieldofstudy{Informatyka}
-
-\supervisor{dr inż.\ Łukasz Faber}
-
-\date{\the\year}
-
 \begin{document}
 
+\frontmatter
 \maketitle
-
 \tableofcontents
-\newpage
 
-\section{\SectionTitleProjectVision}
-\label{sec:cel-wizja}
+\mainmatter
 
-\subsection{Wprowadzenie}
+\chapter{Cel prac i wizja produktu}
+
+\section{Wprowadzenie}
 
 Gra typu Capture-the-Flag jest to rodzaj zawodów z ogólnie pojętego
 bezpieczeństwa komputerowego. Ich celem zwykle jest edukacja uczestników
@@ -43,13 +38,12 @@ znaleźć ,,flagę'', którą następnie podaje się w interfejsie udostępniony
 organizatora zawodów. Flagą w tym wypadku jest ciąg znaków, który możemy uzyskać
 poprzez rozwiązanie zadania. Przykładowo w najprostszych zadaniach
 z dziedziny eksploitacji stron internetowych, flagę możemy znaleźć klikając
-"Pokaż źródło strony" w przeglądarce internetowej.
+,,Pokaż źródło strony'' w przeglądarce internetowej.
 
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=10cm]{flag_page_source}
-    \caption{Flaga \textbf{f7s0jkl} ukryta w źródle strony internetowej}
-    \label{fig:flag_page_source}
+\begin{figure}[H]
+\centering
+\includegraphics[width=10cm]{flag_page_source}
+\caption{Flaga \textbf{f7s0jkl} ukryta w źródle strony internetowej}
 \end{figure}
 
 W tej pracy zaprezentowana będzie jednak grę oparta
@@ -64,7 +58,7 @@ się z zagadnieniami Reverse Engineeringu. Jest to mianowicie proces
 wykorzystywania niedoskonałości programów w celu zmuszenia ich do zrobienia
 czegoś, czego w normalnej sytuacji nie powinny robić. Te dwie kategorie pokrywają
 się ze sobą, ponieważ zazwyczaj nie jest możliwe rozwiązanie zadania z kategorii
-eksploitacji binarnej, bez wykorzystania do tego inżynierii wstecznej. \pagebreak
+eksploitacji binarnej, bez wykorzystania do tego inżynierii wstecznej.
 
 Produktem końcowym będzie zbiór kilku zadań udostępniony na platformie webowej.
 Platforma sama w sobie nie jest niczym specjalnym, udostępnia jedynie takie powszechne
@@ -74,11 +68,10 @@ flag. Z tego względu użyta zostanie gotowa platforma CTFd\footnote{\url{https:
 Użycie takiego gotowego rozwiązania pozwoli w pełni skupić się na samych zadaniach,
 a ominąć takie kwestie jak np. gracze łamiący zabezpieczenia platformy.
 
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=10cm]{ctfd}
-    \caption{Przykładowe zadanie na stronie demonstracyjnej CTFd}
-    \label{fig:ctfd}
+\begin{figure}[H]
+\centering
+\includegraphics[width=10cm]{ctfd}
+\caption{Przykładowe zadanie na stronie demonstracyjnej CTFd}
 \end{figure}
 
 W tej pracy opisany zostanie zarówno proces tworzenia poszczególnych zadań,
@@ -90,19 +83,18 @@ Pokazane zostaną różnorodne podejścia do analizy i rozwiązywania wyzwań.
 Zadania będą tworzone z zamiarem zachowania rosnącego stopnia trudności.
 Na początku uczestnik będzie miał szansę rozwiązać proste zadania,
 zachęcające go do dalszej rozgrywki. Finalne zadania powinny stanowić wyzwanie
-nawet dla doświadczonych graczy. \pagebreak
+nawet dla doświadczonych graczy.
 
-\subsection{Dostępne platformy}
+\section{Dostępne platformy}
 
 Aktualnie istnieje wiele różnych zawodów CTF online. Jednym z popularniejszych
 jest \mbox{picoCTF}\footnote{\url{https://picoctf.com/}}.
 Można tam wejść kiedykolwiek, zalogować się i zająć się rozwiązywaniem problemów.
 
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=15cm]{picoctf}
-    \caption{Zadanie z kategorii Forensics na stronie picoCTF}
-    \label{fig:picoctf}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{picoctf}
+\caption{Zadanie z kategorii Forensics na stronie picoCTF}
 \end{figure}
 
 Główną motywacją do napisania tej pracy jest fakt, że strony tego typu często skupiają
@@ -110,7 +102,7 @@ się na zadaniach w takich kategoriach jak Forensics czy Web Exploitation.
 Mnie natomiast bardzo interesuję temat inżynierii wstecznej i chciałem
 przygotować wyzwania oparte o zadania tylko z tej kategorii.
 
-\subsection{Języki programowania i narzędzia}
+\section{Języki programowania i narzędzia}
 
 Zadania będą tworzone w języku C. Jest to powszechnie znany język, który
 z wyłączoną zbyt agresywną optymalizacją ze strony kompilatora, generuje
@@ -127,12 +119,9 @@ czy \mintinline{bash}{gdb}, pisania własnych narzędzi w języku \emph{Python},
 czy w końcu korzystając z pełnoprawnych narzędzi z interfejsem graficznym takich
 jak \emph{Cutter}, czy używana przez NSA \emph{Ghidra}.
 
-\clearpage
+\chapter{Zakres funkcjonalności}
 
-\section{\SectionTitleScope}
-\label{sec:zakres-funkcjonalnosci}
-
-\subsection{Platforma}
+\section{Platforma}
 
 Do interfejsu webowego skorzystamy z gotowej platformy CTFd.
 Finalny produkt będzie dostępny pod adresem
@@ -142,7 +131,7 @@ uruchomiona w środowisku docker, a wystawiona do świata będzie poprzez serwer
 Caddy\footnote{\url{https://caddyserver.com/}}, który w prosty sposób zapewni nam HTTPS,
 dzięki organizacji Let's Encrypt\footnote{\url{https://letsencrypt.org/}}.
 
-\subsection{Użytkownicy}
+\section{Użytkownicy}
 
 Użytkownikiem systemu będzie każda osoba zainteresowana rozwiązywaniem
 tego rodzaju zadań. Może to być zarówno ktoś kształcący się lub pracujący
@@ -151,32 +140,29 @@ w dziale informatycznym, jak i osoba dla której jest to jedynie hobby.
 Wszystkie gotowe zadania zostaną wrzucone na platformę, dzięki czemu
 każda zainteresowana osoba będzie mogła spróbować swoich sił.
 
-\subsection{Zadania}
+\section{Zadania}
 
 Każde z zadań będzie sprawdzało różne umiejętności rozwiązujących je użytkowników.
 Kolejne zadania będą miały coraz większy stopień trudności. Liczba przy nazwie zadania
 oznacza ilość punktów, które użytkownik dostanie za prawidłowe rozwiązanie.
 
-\subsubsection{100-simple}
-\subsubsection{200-game}
-\subsubsection{300-strcmp}
-\subsubsection{400-decrypt}
-\subsubsection{500-secret-shell}
-\subsubsection{600-vm}
+\subsection{100-simple}
+\subsection{200-game}
+\subsection{300-strcmp}
+\subsection{400-decrypt}
+\subsection{500-secret-shell}
+\subsection{600-vm}
 
-\clearpage
+\chapter{Wybrane aspekty realizacji}
 
-\section{\SectionTitleRealizationAspects}
-\label{sec:wybrane-aspekty-realizacji}
-
-\subsection{Wprowadzenie}
+\section{Wprowadzenie}
 
 W tym rozdziale przedstawione zostaną sposoby tworzenia poszczególnych zadań.
-Warto dodać również, że zawarte w opisach flagi są przykładowe i w formacie
-\emph{AGH\{nazwa-zadania\}}, aby nie wyjawiać prawdziwych flag użytych w rozgrywce.
-Przykładowe rozwiązania zadań znajdują się w rozdziale 5 -- \nameref{sec:wyniki-projektu}.
+Warto dodać również, że przestawione flagi są w formacie \emph{AGH\{nazwa-zadania\}},
+aby nie wyjawiać prawdziwych flag użytych w rozgrywce.
+Przykładowe rozwiązania zadań znajdują się w rozdziale 5 -- \nameref{chap:writeups}.
 
-\subsection{Zadanie 100-simple}
+\section{Zadanie 100-simple}
 
 Pierwszym zadaniem jest odnalezienie flagi wprost umieszczonej
 w pliku wykonywalnym jako ciąg znaków.
@@ -211,9 +197,8 @@ porównuje je z zapisaną na stałe w kodzie flagą. Użytkownik po inspekcji sk
 pliku wykonywalnego komendą \mintinline{bash}{strings} lub użyciu innego narzędzia
 do inspekcji plików binarnych, powinien szybko zwrócić uwagę na
 ciąg znaków wyglądający jak rozwiązanie tego zadania.
-\clearpage
 
-\subsection{Zadanie 200-game}
+\section{Zadanie 200-game}
 
 W drugim zadaniu flaga będzie odszyfrowana zaraz po uruchomieniu programu. Zadaniem
 użytkownika będzie odnalezienie tej flagi poprzez modyfikacje
@@ -295,9 +280,8 @@ void decrypt_flag()
 Odszyfrowanie flagi korzystając z kodu zdekompilowanej funkcji \emph{decrypt\_flag} jest możliwe,
 jednak użytkownik powinien sobie dużo szybciej poradzić z rozwiązaniem zadania prostszymi
 sposobami.
-\clearpage
 
-\subsection{Zadanie 300-strcmp}
+\section{Zadanie 300-strcmp}
 
 Trzecie zadanie będzie połączeniem dwóch wcześniejszych.
 Poniżej przedstawiona funkcja \emph{main} programu.
@@ -327,9 +311,8 @@ int main()
 Jak widać kod jest taki sam jak w zadaniu pierwszym, jedynie z tą różnicą, że
 flaga zamiast zapisana w kodzie w jawny sposób, jest odszyfrowywana zaraz po uruchomieniu
 programu -- podobnie jak w zadaniu drugim.
-\clearpage
 
-\subsection{Zadanie 400-decrypt}
+\section{Zadanie 400-decrypt}
 
 Czwarte zadanie będzie zawierało funkcje szyfrującą wejście użytkownika, a następnie to wejście będzie
 porównywane z wcześniej zaszyfrowaną flagą. Zadaniem użytkownika będzie przykładowo napisanie skryptu
@@ -366,8 +349,6 @@ int main()
 \end{minted}
 
 Jak widać główny kod programu jest bardzo prosty i nie różni się specjalnie od poprzednich zadań.
-\clearpage
-
 Poniżej przedstawiona zostanie funkcja szyfrująca \emph{encrypt}.
 
 \begin{minted}{c}
@@ -404,7 +385,6 @@ to przesuwa ją o 13 w lewo albo 13 w prawo. Druga część to prosty szyfr XOR 
 Program przechodzi po kolei po każdym znaku i wykonuje operacje XOR z kolejnymi bajtami klucza. Jeśli dojdziemy
 do ostatniego bajta klucza -- wracamy z powrotem do pierwszego bajtu.
 
-\clearpage
 Ostatnim krokiem jest wygenerowanie tablicy \emph{flag}. Tworzymy nowy pomocniczy program
 -- \emph{generate}, zawierający zmodyfikowaną funkcję \emph{main},
 która zwróci nam finalną zawartość tablicy \emph{flag}.
@@ -444,28 +424,17 @@ Teraz możemy do głównego programu dodać definicje tablicy \emph{flag}.
 \begin{minted}[breaklines]{c}
 char flag[] = { 0x90, 0xf9, 0xeb, 0x94, 0xea, 0x9d, 0x8e, 0xc2, 0xaf, 0xdf, 0xce, 0x8a, 0xb2, 0xce, 0xd9, 0x92 };
 \end{minted}
-\clearpage
 
-\subsection{Zadanie 500-secret-shell}
+\section{Zadanie 500-secret-shell}
 
-\subsection{Zadanie 600-vm}
+\section{Zadanie 600-vm}
 
-\clearpage
+\chapter{Organizacja pracy}
 
-\section{\SectionTitleWorkOrganization}
-\label{sec:organizacja-pracy}
-\emph{Struktura zespołu (role poszczególnych osób), krótki opis i
-    uzasadnienie przyjętej metodyki i/lub kolejności prac, planowane i
-    zrealizowane etapy prac ze wskazaniem udziału poszczególnych
-    członków zespołu, wykorzystane praktyki i narzędzia w zarządzaniu
-    projektem.}
+\chapter{Przykłady rozwiązań zadań}
+\label{chap:writeups}
 
-\clearpage
-
-\section{\SectionTitleResults}
-\label{sec:wyniki-projektu}
-
-\subsection{Wprowadzenie}
+\section{Wprowadzenie}
 
 W tym rozdziale przedstawione zostaną przykładowe sposoby rozwiązania poszczególnych zadań.
 Podobnie jak w rozdziale opisującym proces tworzenia tych zadań, znalezione
@@ -474,32 +443,27 @@ flagi są przykładowe.
 Aby rozpocząć rozwiązywać zadania użytkownik musi się udać na stronę z zadaniami.
 
 \begin{figure}[H]
-    \centering
-    \includegraphics[width=11cm]{ui_challenges}
-    \caption{Interfejs użytkownika z listą zadań do rozwiązania}
-    \label{fig:ui_challenges}
+\centering
+\includegraphics[width=\textwidth]{ui_challenges}
+\caption{Interfejs użytkownika z listą zadań do rozwiązania}
 \end{figure}
 
-Po wybraniu zadania do rozwiązania ukazuję mu się okno, gdzie może pobrać plik z zadaniem oraz wprowadzić
-rozwiązanie.
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=11cm]{ui_download}
-    \caption{Interfejs użytkownika z konkretnym zadaniem do rozwiązania}
-    \label{fig:ui_download}
-\end{figure}
-
-Kiedy użytkownik rozwiąże zadanie, może wprowadzić rozwiązanie na stronie.
+Po wybraniu zadania do rozwiązania ukazuję mu się okno,
+gdzie może pobrać plik z zadaniem oraz wprowadzić rozwiązanie.
 
 \begin{figure}[H]
-    \centering
-    \includegraphics[width=11cm]{ui_solved}
-    \caption{Interfejs użytkownika po wprowadzeniu prawidłowej flagi}
-    \label{fig:ui_solved}
+\centering
+\includegraphics[width=\textwidth]{ui_download}
+\caption{Interfejs użytkownika z konkretnym zadaniem do rozwiązania}
 \end{figure}
-\clearpage
 
-\subsection{Zadanie 100-simple}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{ui_solved}
+\caption{Interfejs użytkownika po wprowadzeniu prawidłowej flagi}
+\end{figure}
+
+\section{Zadanie 100-simple}
 
 Po otworzeniu karty z pierwszym zadaniem uczestnik pobiera załączony do niego
 plik -- \emph{simple}.
@@ -547,16 +511,15 @@ Correct flag!
 Otrzymuje informację, że jest to prawidłowa flaga.
 Po wpisaniu go na stronie zadania dowiaduje się, że jest to prawidłowe rozwiązanie.
 
-\subsection{Zadanie 200-game}
+\section{Zadanie 200-game}
 
 Użytkownikowi po pobraniu oraz uruchomieniu załączonego pliku \emph{game.exe} ukazuję
 się następujące okienko.
 
 \begin{figure}[H]
-    \centering
-    \includegraphics{200_not_unlocked}
-    \caption{Okienko programu z informacją o braku dostępu do flagi}
-    \label{fig:200_not_unlocked}
+\centering
+\includegraphics{200_not_unlocked}
+\caption{Okienko programu z informacją o braku dostępu do flagi}
 \end{figure}
 
 Użytkownik otwiera plik wykonywalny w programie IDA\footnote{
@@ -565,10 +528,9 @@ Darmowa wersja programu IDA przeznaczona do użytku domowego dostępna do pobran
 aby zapoznać się z działaniem programu.
 
 \begin{figure}[H]
-    \centering
-    \includegraphics[width=16cm]{200_ida_graph}
-    \caption{Widok grafowy w programie IDA przestawiający główną pętle programu}
-    \label{fig:200_ida_graph}
+\centering
+\includegraphics[width=\textwidth]{200_ida_graph}
+\caption{Widok grafowy w programie IDA przestawiający główną pętle programu}
 \end{figure}
 
 Zauważa on, że wywołanie funkcji o nazwie \emph{\_show\_flag} decyduję o wyborze jednego
@@ -577,10 +539,9 @@ wyświetlany w prawym węźle (\textit{,,You have not unlocked access to the fla
 się, że funkcja \emph{\_show\_flag} decyduję o tym czy flaga zostanie wyświetlona użytkownikowi.
 
 \begin{figure}[H]
-    \centering
-    \includegraphics{200_ida_show_flag}
-    \caption{Funkcja \emph{\_show\_flag}}
-    \label{fig:200_ida_show_flag}
+\centering
+\includegraphics{200_ida_show_flag}
+\caption{Kod asemblera x86 dla funkcji \emph{\_show\_flag}}
 \end{figure}
 
 Jedyne co ta funkcja robi to zwraca liczbę 0 -- czyli \emph{false}.
@@ -589,28 +550,24 @@ wykonywalnego poprzez nadpisanie konkretnych bajtów}
 program, aby funkcja ta zwracała 1 -- czyli \emph{true}.
 
 \begin{figure}[H]
-    \centering
-    \includegraphics{200_ida_patch}
-    \caption{Modyfikacja instrukcji, aby zwracała 1 zamiast 0}
-    \label{fig:200_ida_patch}
+\centering
+\includegraphics{200_ida_patch}
+\caption{Modyfikacja instrukcji, aby zwracała 1 zamiast 0}
 \end{figure}
 
 Po zaaplikowaniu patch'a oraz ponownym uruchomieniu programu użytkownikowi ukazuję się
 następujący widok.
 
 \begin{figure}[H]
-    \centering
-    \includegraphics{200_flag}
-    \caption{Okienko programu wraz z otrzymaną flagą}
-    \label{fig:200_flag}
+\centering
+\includegraphics{200_flag}
+\caption{Okienko programu wraz z otrzymaną flagą}
 \end{figure}
 
 Po wpisaniu na stronie flagi \emph{AGH\{200-game\}} użytkownik otrzymuję informację
 o poprawnym rozwiązaniu zadania.
 
-\clearpage
-
-\subsection{Zadanie 300-strcmp}
+\section{Zadanie 300-strcmp}
 
 Użytkownik pobiera plik \emph{strcmp} i sprawdza go programem \emph{file}.
 
@@ -631,10 +588,9 @@ Incorrect flag!
 Aby przeanalizować działanie programu otwiera go w darmowym narzędziu Cutter\footnote{\url{https://cutter.re/}}
 
 \begin{figure}[H]
-    \centering
-    \includegraphics[width=16cm]{300_cutter}
-    \caption{Widok grafowy funkcji \emph{main} w narzędziu Cutter}
-    \label{fig:300_cutter}
+\centering
+\includegraphics[width=\textwidth]{300_cutter}
+\caption{Widok grafowy funkcji \emph{main} w narzędziu Cutter}
 \end{figure}
 
 Zauważa, że za sprawdzenie poprawności flagi odpowiada funkcja \emph{strcmp}, która
@@ -686,9 +642,8 @@ W rejestrze RDI znajduję się adres tekstu wpisanego przez użytkownika, natomi
 w rejestrze RSI ciąg znaków, z którym wejście od użytkownika jest porównywane -- czyli
 jawna postać flagi. W taki sposób użytkownik otrzymuję flagę \emph{AGH\{300-strcmp\}},
 która jest rozwiązaniem tego zadania.
-\clearpage
 
-\subsection{Zadanie 400-decrypt}
+\section{Zadanie 400-decrypt}
 
 Użytkownik pobiera plik \emph{decrypt} i podobnie jak wcześniej sprawdza go programem \emph{file}.
 
@@ -713,10 +668,9 @@ Użytkownik wczytuje pobrany plik wykonywalny do narzędzia i uruchamia widok de
 dla funkcji \emph{main}.
 
 \begin{figure}[H]
-    \centering
-    \includegraphics[width=12cm]{400_main}
-    \caption{Widok dekompilatora dla funkcji \emph{main} w narzędziu Ghidra}
-    \label{fig:400_main}
+\centering
+\includegraphics[width=\textwidth]{400_main}
+\caption{Widok dekompilatora dla funkcji \emph{main} w narzędziu Ghidra}
 \end{figure}
 
 Zauważa, że powyższy fragment kodu szyfruje tekst wprowadzony przez użytkownika,
@@ -725,10 +679,9 @@ Następnie analizuje zdekompillwany kod funkcji \emph{encrypt} zmieniając nazwy
 dla poprawy czytelności.
 
 \begin{figure}[H]
-    \centering
-    \includegraphics[width=14cm]{400_encrypt}
-    \caption{Widok dekompilatora dla funkcji \emph{encrypt} w narzędziu Ghidra}
-    \label{fig:400_encrypt}
+\centering
+\includegraphics[width=\textwidth]{400_encrypt}
+\caption{Widok dekompilatora dla funkcji \emph{encrypt} w narzędziu Ghidra}
 \end{figure}
 
 Zauważa, że funkcja szyfrująca dzieli się na dwa fragmenty.
@@ -745,10 +698,9 @@ są w pamięci w formie Little Endian, to klucz również można zapisać nastę
 \emph{0xDE, 0xAD, 0xBE, 0xEF}. Następnie podgląda zawartość tablicy \emph{flag}.
 
 \begin{figure}[H]
-    \centering
-    \includegraphics{400_flag}
-    \caption{Zawartość tablicy \emph{flag} w widoku Listing narzędzia Ghidra}
-    \label{fig:400_flag}
+\centering
+\includegraphics{400_flag}
+\caption{Zawartość tablicy \emph{flag} w widoku Listing narzędzia Ghidra}
 \end{figure}
 
 Posiadając te informacje pisze skrypt w języku Python, który odwróci wcześniej otrzymaną
@@ -786,10 +738,20 @@ AGH{400-decrypt}
 \end{minted}
 
 Otrzymuje rozwiązanie tego zadania, czyli flagę \emph{AGH\{400-decrypt\}}.
-\clearpage
 
-\subsection{Zadanie 500-secret-shell}
+\section{Zadanie 500-secret-shell}
 
-\subsection{Zadanie 600-vm}
+\section{Zadanie 600-vm}
+
+\backmatter
+
+\cleardoublepage
+\listoffigures
+
+%\cleardoublepage
+%\listoftables
+
+%\cleardoublepage
+%\printbibliography
 
 \end{document}
