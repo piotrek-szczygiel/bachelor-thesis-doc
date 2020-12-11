@@ -70,8 +70,7 @@ Produktem końcowym będzie zbiór kilku zadań udostępniony na platformie webo
 Platforma sama w sobie nie jest niczym specjalnym, udostępnia jedynie takie powszechne
 funkcjonalności jak rejestracja użytkowników, ranking najlepszych graczy,
 pobieranie zadań oraz interfejs umożliwiający wprowadzanie znalezionych
-flag. Z tego względu użyta zostanie gotowa platforma CTFd\footnote{
-Informacje o platformie CTFd dostępne pod adresem \url{https://ctfd.io/}}.
+flag. Z tego względu użyta zostanie gotowa platforma CTFd\footnote{\url{https://ctfd.io/}}.
 Użycie takiego gotowego rozwiązania pozwoli w pełni skupić się na samych zadaniach,
 a ominąć takie kwestie jak np. gracze łamiący zabezpieczenia platformy.
 
@@ -96,8 +95,7 @@ nawet dla doświadczonych graczy. \pagebreak
 \subsection{Dostępne platformy}
 
 Aktualnie istnieje wiele różnych zawodów CTF online. Jednym z popularniejszych
-jest \mbox{picoCTF}\footnote{
-Zawody picoCTF dostępne pod adresem \url{https://picoctf.com/}}.
+jest \mbox{picoCTF}\footnote{\url{https://picoctf.com/}}.
 Można tam wejść kiedykolwiek, zalogować się i zająć się rozwiązywaniem problemów.
 
 \begin{figure}[ht]
@@ -140,10 +138,9 @@ Do interfejsu webowego skorzystamy z gotowej platformy CTFd.
 Finalny produkt będzie dostępny pod adresem
 \href{https://ctf.szczygiel.dev}{https://ctf.szczygiel.dev}.
 Strona postawiona będzie na prywatnym serwerze VPS. Platforma będzie
-uruchomiona w środowisku docker, a wystawiona do świata będzie poprzez serwer Caddy\footnote{
-Serwer Caddy: \url{https://caddyserver.com/}},
-który w prosty sposób zapewni nam HTTPS, dzięki organizacji Let's Encrypt\footnote{
-Organizacja Let's Encrypt: \url{https://letsencrypt.org/}}.
+uruchomiona w środowisku docker, a wystawiona do świata będzie poprzez serwer
+Caddy\footnote{\url{https://caddyserver.com/}}, który w prosty sposób zapewni nam HTTPS,
+dzięki organizacji Let's Encrypt\footnote{\url{https://letsencrypt.org/}}.
 
 \subsection{Użytkownicy}
 
@@ -154,124 +151,25 @@ w dziale informatycznym, jak i osoba dla której jest to jedynie hobby.
 Wszystkie gotowe zadania zostaną wrzucone na platformę, dzięki czemu
 każda zainteresowana osoba będzie mogła spróbować swoich sił.
 
-\clearpage
+\subsection{Zadania}
 
-\subsection{Prezentacja interfejsu użytkownika}
+Każde z zadań będzie sprawdzało różne umiejętności rozwiązujących je użytkowników.
+Kolejne zadania będą miały coraz większy stopień trudności. Liczba przy nazwie zadania
+oznacza ilość punktów, które użytkownik dostanie za prawidłowe rozwiązanie.
 
-\begin{figure}[ht]
-    Pierwsze co zobaczy każdy użytkownik wchodzący na platformę, to strona główna.
-    Będzie z niej można przejść do reszty podstron, takich jak logowanie, rejestracja,
-    wylogowanie, spis graczy, tabela wyników oraz lista dostępnych zadań.
-
-    \vspace{1cm}
-
-    \centering
-    \includegraphics[width=14cm]{szczygiel_dev}
-    \caption{Strona głowna platformy CTF}
-    \label{fig:szczygiel_dev}
-\end{figure}
-
-\begin{figure}[ht]
-    Poniżej przedstawiony jest interfejs rejestracji nowego użytkownika.
-    Nie będzie to nic skomplikowanego -- wystarczy podać login, email oraz hasło.
-
-    \vspace{1cm}
-
-    \centering
-    \includegraphics[width=14cm]{szczygiel_dev_register}
-    \caption{Rejestracja nowego użytkownika}
-    \label{fig:szczygiel_dev_register}
-\end{figure}
-
-\begin{figure}[ht]
-    Jeśli użytkownik posiada konto to będzie się mógł na nie zalogować.
-
-    \vspace{1cm}
-
-    \centering
-    \includegraphics[width=14cm]{szczygiel_dev_login}
-    \caption{Panel logowania dla istniejącego użytkownika}
-    \label{fig:szczygiel_dev_login}
-\end{figure}
-
-\begin{figure}[ht]
-    Będąc zalogowanym, można wybrać zadanie które ma się ochote rozwiązać.
-
-    \vspace{1cm}
-
-    \centering
-    \includegraphics[width=14cm]{szczygiel_dev_challenges}
-    \caption{Wybór zadania do rozwiązania}
-    \label{fig:szczygiel_dev_challenges}
-\end{figure}
-
-\begin{figure}[ht]
-Po wybraniu interesującego nas zadania, można pobrać dostarczony plik,
-    a następnie po rozwiązaniu zadania wprowadzić prawidłową (lub nie) flagę.
-
-    \vspace{1cm}
-
-    \centering
-    \includegraphics[width=14cm]{szczygiel_dev_incorrect}
-    \caption{Interfejs zadania oraz wprowadzenie nieprawidłowej flagi}
-    \label{fig:szczygiel_dev_incorrect}
-\end{figure}
-
-\begin{figure}[ht]
-    Po wprowadzeniu prawidłowej flagi otrzymamy stosowny komunikat.
-    Można również zauważyć, że zadanie w tle zmieniło kolor na zielony.
-
-    \vspace{1cm}
-
-    \centering
-    \includegraphics[width=14cm]{szczygiel_dev_correct}
-    \caption{Efekt wprowadzenia prawidłowej flagi}
-    \label{fig:szczygiel_dev_correct}
-\end{figure}
-
-\begin{figure}[ht]
-    Dostępna jest również lista zarejestrowanych użytkowników.
-    Można wejść w profil każdego użytkownika i zobaczyć jego postępy.
-
-    \vspace{1cm}
-
-    \centering
-    \includegraphics[width=14cm]{szczygiel_dev_users}
-    \caption{Spis zarejestrowanych użytkowników}
-    \label{fig:szczygiel_dev_users}
-\end{figure}
-
-\begin{figure}[ht]
-Wchodząc na profil użytkownika można zobaczyć o nim różne informacje.
-Jest to przede wszystkim rozkład prawidłowych oraz nieprawidłowych
-    wprowadzeń flag oraz wykres posiadanych punktów w czasie.
-    Na dole widzimy również wszystkie rozwiązane przez użytkownika zadania.
-
-    \vspace{1cm}
-
-    \centering
-    \includegraphics[width=14cm]{szczygiel_dev_user_info}
-    \caption{Szczegóły postępów konkretnego użytkownika}
-    \label{fig:szczygiel_dev_user_info}
-\end{figure}
-
-\begin{figure}[ht]
-    Każdy użytkownik może również zmienić oraz dodać informację o sobie.
-    Będzie mógł zmienić nazwę użytkownika, email, hasło, oraz dodać
-    takie szczegóły jak strona internetowa, firma dla której pracuję czy kraj pochodzenia.
-
-    \vspace{1cm}
-
-    \centering
-    \includegraphics[width=14cm]{szczygiel_dev_settings}
-    \caption{Edycja profilu użytkownika}
-    \label{fig:szczygiel_dev_settings}
-\end{figure}
+\subsubsection{100-simple}
+\subsubsection{200-game}
+\subsubsection{300-strcmp}
+\subsubsection{400-decrypt}
+\subsubsection{500-secret-shell}
+\subsubsection{600-vm}
 
 \clearpage
 
 \section{\SectionTitleRealizationAspects}
 \label{sec:wybrane-aspekty-realizacji}
+
+\subsection{Wprowadzenie}
 
 W tym rozdziale przedstawione zostaną sposoby tworzenia poszczególnych zadań.
 Warto dodać również, że zawarte w opisach flagi są przykładowe i w formacie
@@ -284,9 +182,9 @@ Pierwszym zadaniem jest odnalezienie flagi wprost umieszczonej
 w pliku wykonywalnym jako ciąg znaków.
 Zadanie to służyć ma jako pewnego rodzaju rozgrzewka i powinno być stosunkowo
 proste do rozwiązania nawet przez kompletnie początkujących zawodników.
-Poniżej przedstawiona uproszczona\footnote{Uproszczona, czyli zawierająca jedynie
-najważniejsze fragmenty kodu, pozbawiona sprawdzania błędów, definicji funkcji
-pomocniczych, załączania nagłówków itp.} wersja kodu źródłowego.
+Poniżej uproszczony\footnote{Uproszczony, czyli zawierający jedynie
+najważniejsze fragmenty kodu, pozbawiony sprawdzania błędów, definicji funkcji
+pomocniczych, załączania nagłówków itp.} kod programu.
 
 \begin{minted}{c}
 int main()
@@ -295,12 +193,13 @@ int main()
 
     printf("Enter the flag: ");
     fgets(input, sizeof(input), stdin);
+
     input[strlen(input) - 1] = '\0';
 
     if (strcmp(input, "AGH{100-simple}") == 0) {
-        printf("Correct flag!\n");
+        puts("Correct flag!");
     } else {
-        printf("Incorrect flag!\n");
+        puts("Incorrect flag!");
     }
 
     return 0;
@@ -309,7 +208,8 @@ int main()
 
 Jak widać program jedynie co robi, to pobiera wejście od użytkownika, a następnie
 porównuje je z zapisaną na stałe w kodzie flagą. Użytkownik po inspekcji skompilowanego
-pliku wykonywalnego komendą \mintinline{bash}{strings} powinien szybko zwrócić uwagę na
+pliku wykonywalnego komendą \mintinline{bash}{strings} lub użyciu innego narzędzia
+do inspekcji plików binarnych, powinien szybko zwrócić uwagę na
 ciąg znaków wyglądający jak rozwiązanie tego zadania.
 \clearpage
 
@@ -321,8 +221,7 @@ pliku wykonywalnego w celu zmiany zachowania programu.
 
 Sam program będzie działać w graficznym środowisku systemu Windows.
 Do obsługi okienek i innych aspektów graficznych wykorzystana została
-biblioteka raylib\footnote{
-Biblioteka raylib: \url{https://www.raylib.com/}}.
+biblioteka raylib\footnote{\url{https://www.raylib.com/}}.
 Poniżej przedstawiony kod programu z pominięciem funkcji \emph{decrypt\_flag}.
 
 \begin{minted}[breaklines]{c}
@@ -401,7 +300,7 @@ sposobami.
 \subsection{Zadanie 300-strcmp}
 
 Trzecie zadanie będzie połączeniem dwóch wcześniejszych.
-Poniżej przedstawiona uproszczone wersja kodu źródłowego, bez funkcji \emph{decrypt\_flag}.
+Poniżej przedstawiona funkcja \emph{main} programu.
 
 \begin{minted}[breaklines]{c}
 int main()
@@ -412,12 +311,13 @@ int main()
 
     printf("Enter the flag: ");
     fgets(input, sizeof(input), stdin);
+
     input[strlen(input) - 1] = '\0';
 
     if (strcmp(input, (char*)flag) == 0) {
-        printf("Correct flag!\n");
+        puts("Correct flag!");
     } else {
-        printf("Incorrect flag!\n");
+        puts("Incorrect flag!");
     }
 
     return 0;
@@ -438,12 +338,13 @@ wyciągniętą z pliku wykonywalnego.
 
 Funkcja szyfrującą będzie dzieliła się na dwa etapy. Pierwszym etapem będzie użycie prostego
 szyfru Cezara z przesunięciem 13 -- zwanym także ROT13. Drugi etap będzie to prosty szyfr XOR
-z użyciem 4 bajtowego klucza. Poniżej przestawiony uproszczony kod funkcji \emph{main} programu.
+z użyciem 4 bajtowego klucza. Poniżej przestawiony kod funkcji \emph{main} programu.
 
 \begin{minted}[breaklines]{c}
 int main()
 {
     char input[64];
+
     printf("Enter the flag: ");
     fgets(input, sizeof(input), stdin);
 
@@ -454,12 +355,12 @@ int main()
         encrypt(input, length);
 
         if (memcmp(input, flag, length) == 0) {
-            printf("Correct flag!\n");
+            puts("Correct flag!");
             return 0;
         }
     }
 
-    printf("Incorrect flag!\n");
+    puts("Incorrect flag!");
     return 0;
 }
 \end{minted}
@@ -504,8 +405,9 @@ Program przechodzi po kolei po każdym znaku i wykonuje operacje XOR z kolejnymi
 do ostatniego bajta klucza -- wracamy z powrotem do pierwszego bajtu.
 
 \clearpage
-Ostatnim krokiem jest wygenerowanie tablicy \emph{flag}. Tworzymy nowy program - \emph{generate}, zawierający
-zmodyfikowaną funkcję \emph{main}, która zwróci nam finalną zawartość tablicy \emph{flag}.
+Ostatnim krokiem jest wygenerowanie tablicy \emph{flag}. Tworzymy nowy pomocniczy program
+-- \emph{generate}, zawierający zmodyfikowaną funkcję \emph{main},
+która zwróci nam finalną zawartość tablicy \emph{flag}.
 Poniżej przestawiony zmodyfikowany kod funkcji \emph{main} dla programu \emph{generate}.
 
 \begin{minted}{c}
@@ -546,7 +448,7 @@ char flag[] = { 0x90, 0xf9, 0xeb, 0x94, 0xea, 0x9d, 0x8e, 0xc2, 0xaf, 0xdf, 0xce
 
 \subsection{Zadanie 500-secret-shell}
 
-\subsection{Zadanie 600-custom-vm}
+\subsection{Zadanie 600-vm}
 
 \clearpage
 
@@ -563,9 +465,39 @@ char flag[] = { 0x90, 0xf9, 0xeb, 0x94, 0xea, 0x9d, 0x8e, 0xc2, 0xaf, 0xdf, 0xce
 \section{\SectionTitleResults}
 \label{sec:wyniki-projektu}
 
+\subsection{Wprowadzenie}
+
 W tym rozdziale przedstawione zostaną przykładowe sposoby rozwiązania poszczególnych zadań.
 Podobnie jak w rozdziale opisującym proces tworzenia tych zadań, znalezione
 flagi są przykładowe.
+
+Aby rozpocząć rozwiązywać zadania użytkownik musi się udać na stronę z zadaniami.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=11cm]{ui_challenges}
+    \caption{Interfejs użytkownika z listą zadań do rozwiązania}
+    \label{fig:ui_challenges}
+\end{figure}
+
+Po wybraniu zadania do rozwiązania ukazuję mu się okno, gdzie może pobrać plik z zadaniem oraz wprowadzić
+rozwiązanie.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=11cm]{ui_download}
+    \caption{Interfejs użytkownika z konkretnym zadaniem do rozwiązania}
+    \label{fig:ui_download}
+\end{figure}
+
+Kiedy użytkownik rozwiąże zadanie, może wprowadzić rozwiązanie na stronie.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=11cm]{ui_solved}
+    \caption{Interfejs użytkownika po wprowadzeniu prawidłowej flagi}
+    \label{fig:ui_solved}
+\end{figure}
+\clearpage
 
 \subsection{Zadanie 100-simple}
 
@@ -696,14 +628,13 @@ Enter the flag: test
 Incorrect flag!
 \end{minted}
 
-Aby przeanalizować działanie programu otwiera go w darmowym narzędziu dostępnym przez
-przeglądarkę Binary Ninja Cloud\footnote{Binary Ninja Cloud: \url{https://cloud.binary.ninja/}}.
+Aby przeanalizować działanie programu otwiera go w darmowym narzędziu Cutter\footnote{\url{https://cutter.re/}}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=16cm]{300_binary_ninja}
-    \caption{Widok grafowy w programie Binary Ninja Cloud}
-    \label{fig:300_binary_ninja}
+    \includegraphics[width=16cm]{300_cutter}
+    \caption{Widok grafowy funkcji \emph{main} w narzędziu Cutter}
+    \label{fig:300_cutter}
 \end{figure}
 
 Zauważa, że za sprawdzenie poprawności flagi odpowiada funkcja \emph{strcmp}, która
@@ -719,14 +650,14 @@ Reading symbols from strcmp...
 All functions matching regular expression "strcmp":
 
 Non-debugging symbols:
-0x0000000000001080  strcmp@plt
+0x0000000000001070  strcmp@plt
 \end{minted}
 
 Zakłada teraz punkt przerwania w momencie wywołania funkcji \emph{strcmp}.
 
 \begin{minted}{text}
 (gdb) break strcmp@plt
-Breakpoint 1 at 0x1080
+Breakpoint 1 at 0x1070
 \end{minted}
 
 Uruchamia program i wpisuje dowolny tekst, aby przejść do punktu przerwania.
@@ -736,7 +667,7 @@ Uruchamia program i wpisuje dowolny tekst, aby przejść do punktu przerwania.
 Starting program: /home/piotr/strcmp 
 Enter the flag: test
 
-Breakpoint 1, 0x0000555555555080 in strcmp@plt ()
+Breakpoint 1, 0x0000555555555070 in strcmp@plt ()
 \end{minted}
 
 Kiedy program zatrzyma się w pożądanym miejscu, użytkownik podgląda zawartość pamięci na którą
@@ -746,9 +677,9 @@ wskazują rejestry RDI oraz RSI - czyli dwa parametry przekazane do funkcji \emp
 
 \begin{minted}{text}
 (gdb) x/s $rdi
-0x7fffffffe620:	"test"
+0x7fffffffe2b0: "test"
 (gdb) x/s $rsi
-0x555555558060:	"AGH{300-strcmp}"
+0x555555558050: "AGH{300-strcmp}"
 \end{minted}
 
 W rejestrze RDI znajduję się adres tekstu wpisanego przez użytkownika, natomiast
@@ -776,82 +707,29 @@ Incorrect flag!
 \end{minted}
 
 Tym razem do analizy programu użyje narzędzia Ghidra\footnote{\url{https://ghidra-sre.org/}}.
-Potrafi ona generować pseudokod na podstawie kodu maszynowego programu, co bardzo ułatwia
+Potrafi ona zamieniać kod maszynowy programu na psuedokod C, co bardzo ułatwia
 analizowanie plików wykonywalnych.
-Użytkownik wczytuje pobrany plik wykonywalny do narzędzia, a następnie korzystając z funkcji
-zmiany nazw symboli, zmienia nazwy zmiennych tam gdzie jest to dla niego oczywiste.
-Otrzymuje on następujący fragment pseudokodu.
+Użytkownik wczytuje pobrany plik wykonywalny do narzędzia i uruchamia widok dekompilatora
+dla funkcji \emph{main}.
 
-\begin{minted}{c}
-    sVar3 = strlen(input);
-    length = (int)sVar3 + -1;
-    input[length] = '\0';
-    if (length == 0x10) {
-      encrypt(input,0x10);
-      same = true;
-      i = 0;
-      while (i < 0x10) {
-        if (input[i] != flag[i]) {
-          same = false;
-          break;
-        }
-        i = i + 1;
-      }
-      if (same) {
-        puts("\x1b[92;1mCorrect flag!\x1b[0m");
-        uVar2 = 0;
-        goto LAB_001013da;
-      }
-    }
-    puts("\x1b[91;1mIncorrect flag!\x1b[0m");
-    uVar2 = 0;
-\end{minted}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=12cm]{400_main}
+    \caption{Widok dekompilatora dla funkcji \emph{main} w narzędziu Ghidra}
+    \label{fig:400_main}
+\end{figure}
 
 Zauważa, że powyższy fragment kodu szyfruje tekst wprowadzony przez użytkownika,
 a następnie porównuje go z ciągiem znaków zawartym w zmiennej \emph{flag}.
-Zmienna flag okazuje się tablicą 16 elementów:
-\emph{90 f9 eb 94 ea 9d 8e c2 af df ce 8a b2 ce d9 92}.
-
-Następnie analizuje pseudokod funkcji \emph{encrypt} zmieniając nazwy zmiennych
+Następnie analizuje zdekompillwany kod funkcji \emph{encrypt} zmieniając nazwy zmiennych
 dla poprawy czytelności.
 
-\begin{minted}{c}
-void encrypt(char *input,int length)
-{
-...
-  i = 0;
-  while (i < length) {
-    c = input[i];
-    if ((c < 'A') || ('Z' < c)) {
-      if (('`' < c) && (c < '{')) {
-        if (c < 'n') {
-          input[i] = c + '\r';
-        }
-        else {
-          input[i] = c + -0xd;
-        }
-      }
-    }
-    else {
-      if (c < 'N') {
-        input[i] = c + '\r';
-      }
-      else {
-        input[i] = c + -0xd;
-      }
-    }
-    i = i + 1;
-  }
-  key = 0xefbeadde;
-  k = 0;
-  j = 0;
-  while (j < length) {
-    input[j] = key[k] ^ input[j];
-    k = k + 1U & 3;
-    j = j + 1;
-  }
-}
-\end{minted}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=14cm]{400_encrypt}
+    \caption{Widok dekompilatora dla funkcji \emph{encrypt} w narzędziu Ghidra}
+    \label{fig:400_encrypt}
+\end{figure}
 
 Zauważa, że funkcja szyfrująca dzieli się na dwa fragmenty.
 Pierwszy fragment przechodzi po każdym znaku tablicy wejściowej i dodaje
@@ -860,10 +738,18 @@ odejmuje \emph{0xd} w zależności czy dany znak spełnia warunki.
 Zarówno \emph{'\textbackslash r'} jak i \emph{0xd} to 13 w systemie dziesiętnym.
 Analizując warunki dochodzi do wniosku, że jest to prosty szyfr przesuwający zwany ROT13.
 Drugi fragment również przechodzi po każdym znaku tablicy, a następnie wykonuje
-operacje XOR z kolejnymi bajtami klucza (wracając do pierwszego bajtu po ostatnim).
+operacje XOR z kolejnymi bajtami klucza. Po przekroczeniu ostatniego bajtu klucza
+wraca do pierwszego, co zapewnia operacja \mintinline{c}{k = k + 1 & 3}.
 Biorąc pod uwagę, że liczby całkowite przechowywane
 są w pamięci w formie Little Endian, to klucz również można zapisać następująco:
-\emph{0xDE, 0xAD, 0xBE, 0xEF}.
+\emph{0xDE, 0xAD, 0xBE, 0xEF}. Następnie podgląda zawartość tablicy \emph{flag}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics{400_flag}
+    \caption{Zawartość tablicy \emph{flag} w widoku Listing narzędzia Ghidra}
+    \label{fig:400_flag}
+\end{figure}
 
 Posiadając te informacje pisze skrypt w języku Python, który odwróci wcześniej otrzymaną
 tablice \emph{flag} do wartości pierwotnej.
@@ -871,12 +757,10 @@ tablice \emph{flag} do wartości pierwotnej.
 \begin{minted}[breaklines]{python}
 flag = [0x90, 0xF9, 0xEB, 0x94, 0xEA, 0x9D, 0x8E, 0xC2, 0xAF, 0xDF, 0xCE, 0x8A, 0xB2, 0xCE, 0xD9, 0x92]
 
-# XOR cipher
 key = [0xDE, 0xAD, 0xBE, 0xEF]
 for i in range(len(flag)):
     flag[i] ^= key[i % len(key)]
 
-# ROT13
 for i in range(len(flag)):
     c = flag[i]
 
@@ -890,7 +774,6 @@ for i in range(len(flag)):
             flag[i] = c + 13
         else:
             flag[i] = c - 13
-
 
 print("".join([chr(x) for x in flag]))
 \end{minted}
@@ -907,6 +790,6 @@ Otrzymuje rozwiązanie tego zadania, czyli flagę \emph{AGH\{400-decrypt\}}.
 
 \subsection{Zadanie 500-secret-shell}
 
-\subsection{Zadanie 600-custom-vm}
+\subsection{Zadanie 600-vm}
 
 \end{document}
