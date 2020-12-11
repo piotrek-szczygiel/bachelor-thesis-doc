@@ -70,7 +70,8 @@ Produktem końcowym będzie zbiór kilku zadań udostępniony na platformie webo
 Platforma sama w sobie nie jest niczym specjalnym, udostępnia jedynie takie powszechne
 funkcjonalności jak rejestracja użytkowników, ranking najlepszych graczy,
 pobieranie zadań oraz interfejs umożliwiający wprowadzanie znalezionych
-flag. Z tego względu użyta zostanie gotowa platforma CTFd \cite{CTFd}.
+flag. Z tego względu użyta zostanie gotowa platforma CTFd\footnote{
+Informacje o platformie CTFd dostępne pod adresem \url{https://ctfd.io/}}.
 Użycie takiego gotowego rozwiązania pozwoli w pełni skupić się na samych zadaniach,
 a ominąć takie kwestie jak np. gracze łamiący zabezpieczenia platformy.
 
@@ -94,8 +95,9 @@ nawet dla doświadczonych graczy. \pagebreak
 
 \subsection{Dostępne platformy}
 
-Aktualnie istnieje wiele różnych zawodów CTF online.
-Jednym z popularniejszych jest \newline picoCTF \cite{picoCTF}.
+Aktualnie istnieje wiele różnych zawodów CTF online. Jednym z popularniejszych
+jest \mbox{picoCTF}\footnote{
+Zawody picoCTF dostępne pod adresem \url{https://picoctf.com/}}.
 Można tam wejść kiedykolwiek, zalogować się i zająć się rozwiązywaniem problemów.
 
 \begin{figure}[ht]
@@ -134,13 +136,14 @@ jak \emph{Cutter}, czy używana przez NSA \emph{Ghidra}.
 
 \subsection{Platforma}
 
-Do interfejsu webowego skorzystamy z gotowej platformy CTFd \cite{CTFd}.
+Do interfejsu webowego skorzystamy z gotowej platformy CTFd.
 Finalny produkt będzie dostępny pod adresem
 \href{https://ctf.szczygiel.dev}{https://ctf.szczygiel.dev}.
 Strona postawiona będzie na prywatnym serwerze VPS. Platforma będzie
-uruchomiona w środowisku docker \cite{docker},
-a wystawiona do świata będzie poprzez serwer Caddy \cite{Caddy},
-który w prosty sposób zapewni nam HTTPS, dzięki organizacji Let's Encrypt \cite{lets_encrypt}.
+uruchomiona w środowisku docker, a wystawiona do świata będzie poprzez serwer Caddy\footnote{
+Serwer Caddy: \url{https://caddyserver.com/}},
+który w prosty sposób zapewni nam HTTPS, dzięki organizacji Let's Encrypt\footnote{
+Organizacja Let's Encrypt: \url{https://letsencrypt.org/}}.
 
 \subsection{Użytkownicy}
 
@@ -313,12 +316,13 @@ ciąg znaków wyglądający jak rozwiązanie tego zadania.
 \subsection{Zadanie 200-game}
 
 W drugim zadaniu flaga będzie odszyfrowana zaraz po uruchomieniu programu. Zadaniem
-użytkownika będzie odnalezienie tej flagi poprzez debugowanie lub modyfikacje
+użytkownika będzie odnalezienie tej flagi poprzez modyfikacje
 pliku wykonywalnego w celu zmiany zachowania programu.
 
 Sam program będzie działać w graficznym środowisku systemu Windows.
 Do obsługi okienek i innych aspektów graficznych wykorzystana została
-biblioteka raylib \cite{raylib}.
+biblioteka raylib\footnote{
+Biblioteka raylib: \url{https://www.raylib.com/}}.
 Poniżej przedstawiony kod programu z pominięciem funkcji \emph{decrypt\_flag}.
 
 \begin{minted}[breaklines]{c}
@@ -357,7 +361,9 @@ int main()
 
 Sednem całego zadania jest funkcja \emph{show\_flag}, która kontroluje czy rozwiązanie
 ukaże się użytkownikowi oraz czy flaga w ogóle zostanie odszyfrowana.
-Jeśli chodzi o samo szyfrowanie flagi, użyte zostało do tego narzędzie\footnote{zerosum0x0: Obfuscated String/Shellcode Generator - Online Tool \url{https://zerosum0x0.blogspot.com/2017/08/obfuscatedencrypted-cc-online-string.html}} 
+Jeśli chodzi o samo szyfrowanie flagi, użyte zostało do tego narzędzie\footnote{
+zerosum0x0: Obfuscated String/Shellcode Generator - Online Tool
+\url{https://zerosum0x0.blogspot.com/2017/08/obfuscatedencrypted-cc-online-string.html}}
 pozwalające zamienić ciąg znaków na tablice bajtów wraz z algorytmem odszyfrowującym.
 Poniżej przedstawiony fragment wyniku działania takiego narzędzia.
 
@@ -394,7 +400,149 @@ sposobami.
 
 \subsection{Zadanie 300-strcmp}
 
+Trzecie zadanie będzie połączeniem dwóch wcześniejszych.
+Poniżej przedstawiona uproszczone wersja kodu źródłowego, bez funkcji \emph{decrypt\_flag}.
+
+\begin{minted}[breaklines]{c}
+int main()
+{
+    decrypt_flag();
+
+    char input[64];
+
+    printf("Enter the flag: ");
+    fgets(input, sizeof(input), stdin);
+    input[strlen(input) - 1] = '\0';
+
+    if (strcmp(input, (char*)flag) == 0) {
+        printf("Correct flag!\n");
+    } else {
+        printf("Incorrect flag!\n");
+    }
+
+    return 0;
+}
+\end{minted}
+
+Jak widać kod jest taki sam jak w zadaniu pierwszym, jedynie z tą różnicą, że
+flaga zamiast zapisana w kodzie w jawny sposób, jest odszyfrowywana zaraz po uruchomieniu
+programu -- podobnie jak w zadaniu drugim.
+\clearpage
+
 \subsection{Zadanie 400-decrypt}
+
+Czwarte zadanie będzie zawierało funkcje szyfrującą wejście użytkownika, a następnie to wejście będzie
+porównywane z wcześniej zaszyfrowaną flagą. Zadaniem użytkownika będzie przykładowo napisanie skryptu
+odwracającego działanie funkcji szyfrującej i uruchomienie go podając na wejście zaszyfrowaną flagę
+wyciągniętą z pliku wykonywalnego.
+
+Funkcja szyfrującą będzie dzieliła się na dwa etapy. Pierwszym etapem będzie użycie prostego
+szyfru Cezara z przesunięciem 13 -- zwanym także ROT13. Drugi etap będzie to prosty szyfr XOR
+z użyciem 4 bajtowego klucza. Poniżej przestawiony uproszczony kod funkcji \emph{main} programu.
+
+\begin{minted}[breaklines]{c}
+int main()
+{
+    char input[64];
+    printf("Enter the flag: ");
+    fgets(input, sizeof(input), stdin);
+
+    int length = strlen(input) - 1;
+    input[length] = '\0';
+
+    if (length == sizeof(flag)) {
+        encrypt(input, length);
+
+        if (memcmp(input, flag, length) == 0) {
+            printf("Correct flag!\n");
+            return 0;
+        }
+    }
+
+    printf("Incorrect flag!\n");
+    return 0;
+}
+\end{minted}
+
+Jak widać główny kod programu jest bardzo prosty i nie różni się specjalnie od poprzednich zadań.
+\clearpage
+
+Poniżej przedstawiona zostanie funkcja szyfrująca \emph{encrypt}.
+
+\begin{minted}{c}
+void encrypt(char* input, int length)
+{
+    for (int i = 0; i < length; ++i) {
+        char c = input[i];
+
+        if (c >= 'A' && c <= 'Z') {
+            if (c + 13 <= 'Z')
+                input[i] = c + 13;
+            else
+                input[i] = c - 13;
+        } else if (c >= 'a' && c <= 'z') {
+            if (c + 13 <= 'z')
+                input[i] = c + 13;
+            else
+                input[i] = c - 13;
+        }
+    }
+
+    char key[] = { 0xde, 0xad, 0xbe, 0xef };
+    int k = 0;
+
+    for (int i = 0; i < length; ++i) {
+        input[i] ^= key[k];
+        k = (k + 1) % sizeof(key);
+    }
+}
+\end{minted}
+
+Pierwsza część szyfrowania, czyli ROT13, przechodzi po kolei po każdym znaku na wejściu i jeśli jest to litera,
+to przesuwa ją o 13 w lewo albo 13 w prawo. Druga część to prosty szyfr XOR z kluczem \emph{0xde, 0xad, 0xbe, 0xef}.
+Program przechodzi po kolei po każdym znaku i wykonuje operacje XOR z kolejnymi bajtami klucza. Jeśli dojdziemy
+do ostatniego bajta klucza -- wracamy z powrotem do pierwszego bajtu.
+
+\clearpage
+Ostatnim krokiem jest wygenerowanie tablicy \emph{flag}. Tworzymy nowy program - \emph{generate}, zawierający
+zmodyfikowaną funkcję \emph{main}, która zwróci nam finalną zawartość tablicy \emph{flag}.
+Poniżej przestawiony zmodyfikowany kod funkcji \emph{main} dla programu \emph{generate}.
+
+\begin{minted}{c}
+int main()
+{
+    char input[64];
+    fgets(input, sizeof(input), stdin);
+
+    int length = strlen(input) - 1;
+    input[length] = '\0';
+
+    encrypt(input, length);
+
+    for (int i = 0; i < length; ++i) {
+        printf("0x%02x, ", (unsigned char)input[i]);
+    }
+
+    return 0;
+}
+\end{minted}
+
+Kompilujemy i uruchamiamy program, podając mu na wejście flagę, którą użytkownik będzie musiał odgadnąć.
+
+\begin{minted}[breaklines]{text}
+$ make generate
+gcc -Wall -Wextra -std=c99 generate.c -o generate
+$ ./generate
+AGH{400-decrypt}
+0x90, 0xf9, 0xeb, 0x94, 0xea, 0x9d, 0x8e, 0xc2, 0xaf, 0xdf, 0xce, 0x8a, 0xb2, 0xce, 0xd9, 0x92,
+\end{minted}
+
+Teraz możemy do głównego programu dodać definicje tablicy \emph{flag}.
+
+\begin{minted}[breaklines]{c}
+char flag[] = { 0x90, 0xf9, 0xeb, 0x94, 0xea, 0x9d, 0x8e, 0xc2, 0xaf, 0xdf, 0xce, 0x8a, 0xb2, 0xce, 0xd9, 0x92 };
+\end{minted}
+\clearpage
 
 \subsection{Zadanie 500-secret-shell}
 
@@ -532,14 +680,233 @@ o poprawnym rozwiązaniu zadania.
 
 \subsection{Zadanie 300-strcmp}
 
+Użytkownik pobiera plik \emph{strcmp} i sprawdza go programem \emph{file}.
+
+\begin{minted}[breaklines]{text}
+$ file strcmp
+strcmp: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=bda67999b52d8f4d1f9456346119790c47c261d8, for GNU/Linux 3.2.0, stripped
+\end{minted}
+
+Dowiaduje się, że jest to 64-bitowy plik wykonywalny na platformę Linux.
+Uruchamia więc go, aby sprawdzić jego działanie.
+
+\begin{minted}{text}
+$ ./strcmp
+Enter the flag: test
+Incorrect flag!
+\end{minted}
+
+Aby przeanalizować działanie programu otwiera go w darmowym narzędziu dostępnym przez
+przeglądarkę Binary Ninja Cloud\footnote{Binary Ninja Cloud: \url{https://cloud.binary.ninja/}}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=16cm]{300_binary_ninja}
+    \caption{Widok grafowy w programie Binary Ninja Cloud}
+    \label{fig:300_binary_ninja}
+\end{figure}
+
+Zauważa, że za sprawdzenie poprawności flagi odpowiada funkcja \emph{strcmp}, która
+jako jednego z argumentów używa niemodyfikowanego wejścia użytkownika.
+Oznacza to, że flaga również musi być przekazana w jawnej formie do tej funkcji.
+Korzysta on więc z GNU Debugger, aby odczytać przekazany do niej drugi parametr.
+
+\begin{minted}{text}
+$ gdb -q strcmp
+Reading symbols from strcmp...
+(No debugging symbols found in strcmp)
+(gdb) info functions strcmp
+All functions matching regular expression "strcmp":
+
+Non-debugging symbols:
+0x0000000000001080  strcmp@plt
+\end{minted}
+
+Zakłada teraz punkt przerwania w momencie wywołania funkcji \emph{strcmp}.
+
+\begin{minted}{text}
+(gdb) break strcmp@plt
+Breakpoint 1 at 0x1080
+\end{minted}
+
+Uruchamia program i wpisuje dowolny tekst, aby przejść do punktu przerwania.
+
+\begin{minted}{text}
+(gdb) run
+Starting program: /home/piotr/strcmp 
+Enter the flag: test
+
+Breakpoint 1, 0x0000555555555080 in strcmp@plt ()
+\end{minted}
+
+Kiedy program zatrzyma się w pożądanym miejscu, użytkownik podgląda zawartość pamięci na którą
+zgodnie z konwencją wywołania System V AMD64\footnote{
+\url{https://en.wikipedia.org/wiki/X86_calling_conventions\#System_V_AMD64_ABI}}
+wskazują rejestry RDI oraz RSI - czyli dwa parametry przekazane do funkcji \emph{strcmp}.
+
+\begin{minted}{text}
+(gdb) x/s $rdi
+0x7fffffffe620:	"test"
+(gdb) x/s $rsi
+0x555555558060:	"AGH{300-strcmp}"
+\end{minted}
+
+W rejestrze RDI znajduję się adres tekstu wpisanego przez użytkownika, natomiast
+w rejestrze RSI ciąg znaków, z którym wejście od użytkownika jest porównywane -- czyli
+jawna postać flagi. W taki sposób użytkownik otrzymuję flagę \emph{AGH\{300-strcmp\}},
+która jest rozwiązaniem tego zadania.
+\clearpage
+
 \subsection{Zadanie 400-decrypt}
+
+Użytkownik pobiera plik \emph{decrypt} i podobnie jak wcześniej sprawdza go programem \emph{file}.
+
+\begin{minted}[breaklines]{text}
+$ file decrypt
+decrypt: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=8b4924f98f391fb9939f323d9a89e37d2e7febb7, for GNU/Linux 3.2.0, not stripped
+\end{minted}
+
+Podobnie jak w poprzednim zadaniu, dowiaduję się, że jest to 64-bitowy linuksowy program.
+Uruchamia go.
+
+\begin{minted}{text}
+$ ./decrypt
+Enter the flag: test
+Incorrect flag!
+\end{minted}
+
+Tym razem do analizy programu użyje narzędzia Ghidra\footnote{\url{https://ghidra-sre.org/}}.
+Potrafi ona generować pseudokod na podstawie kodu maszynowego programu, co bardzo ułatwia
+analizowanie plików wykonywalnych.
+Użytkownik wczytuje pobrany plik wykonywalny do narzędzia, a następnie korzystając z funkcji
+zmiany nazw symboli, zmienia nazwy zmiennych tam gdzie jest to dla niego oczywiste.
+Otrzymuje on następujący fragment pseudokodu.
+
+\begin{minted}{c}
+    sVar3 = strlen(input);
+    length = (int)sVar3 + -1;
+    input[length] = '\0';
+    if (length == 0x10) {
+      encrypt(input,0x10);
+      same = true;
+      i = 0;
+      while (i < 0x10) {
+        if (input[i] != flag[i]) {
+          same = false;
+          break;
+        }
+        i = i + 1;
+      }
+      if (same) {
+        puts("\x1b[92;1mCorrect flag!\x1b[0m");
+        uVar2 = 0;
+        goto LAB_001013da;
+      }
+    }
+    puts("\x1b[91;1mIncorrect flag!\x1b[0m");
+    uVar2 = 0;
+\end{minted}
+
+Zauważa, że powyższy fragment kodu szyfruje tekst wprowadzony przez użytkownika,
+a następnie porównuje go z ciągiem znaków zawartym w zmiennej \emph{flag}.
+Zmienna flag okazuje się tablicą 16 elementów:
+\emph{90 f9 eb 94 ea 9d 8e c2 af df ce 8a b2 ce d9 92}.
+
+Następnie analizuje pseudokod funkcji \emph{encrypt} zmieniając nazwy zmiennych
+dla poprawy czytelności.
+
+\begin{minted}{c}
+void encrypt(char *input,int length)
+{
+...
+  i = 0;
+  while (i < length) {
+    c = input[i];
+    if ((c < 'A') || ('Z' < c)) {
+      if (('`' < c) && (c < '{')) {
+        if (c < 'n') {
+          input[i] = c + '\r';
+        }
+        else {
+          input[i] = c + -0xd;
+        }
+      }
+    }
+    else {
+      if (c < 'N') {
+        input[i] = c + '\r';
+      }
+      else {
+        input[i] = c + -0xd;
+      }
+    }
+    i = i + 1;
+  }
+  key = 0xefbeadde;
+  k = 0;
+  j = 0;
+  while (j < length) {
+    input[j] = key[k] ^ input[j];
+    k = k + 1U & 3;
+    j = j + 1;
+  }
+}
+\end{minted}
+
+Zauważa, że funkcja szyfrująca dzieli się na dwa fragmenty.
+Pierwszy fragment przechodzi po każdym znaku tablicy wejściowej i dodaje
+\emph{'\textbackslash r'} lub
+odejmuje \emph{0xd} w zależności czy dany znak spełnia warunki.
+Zarówno \emph{'\textbackslash r'} jak i \emph{0xd} to 13 w systemie dziesiętnym.
+Analizując warunki dochodzi do wniosku, że jest to prosty szyfr przesuwający zwany ROT13.
+Drugi fragment również przechodzi po każdym znaku tablicy, a następnie wykonuje
+operacje XOR z kolejnymi bajtami klucza (wracając do pierwszego bajtu po ostatnim).
+Biorąc pod uwagę, że liczby całkowite przechowywane
+są w pamięci w formie Little Endian, to klucz również można zapisać następująco:
+\emph{0xDE, 0xAD, 0xBE, 0xEF}.
+
+Posiadając te informacje pisze skrypt w języku Python, który odwróci wcześniej otrzymaną
+tablice \emph{flag} do wartości pierwotnej.
+
+\begin{minted}[breaklines]{python}
+flag = [0x90, 0xF9, 0xEB, 0x94, 0xEA, 0x9D, 0x8E, 0xC2, 0xAF, 0xDF, 0xCE, 0x8A, 0xB2, 0xCE, 0xD9, 0x92]
+
+# XOR cipher
+key = [0xDE, 0xAD, 0xBE, 0xEF]
+for i in range(len(flag)):
+    flag[i] ^= key[i % len(key)]
+
+# ROT13
+for i in range(len(flag)):
+    c = flag[i]
+
+    if c >= ord("A") and c <= ord("Z"):
+        if c + 13 <= ord("Z"):
+            flag[i] = c + 13
+        else:
+            flag[i] = c - 13
+    elif c >= ord("a") and c <= ord("z"):
+        if c + 13 <= ord("z"):
+            flag[i] = c + 13
+        else:
+            flag[i] = c - 13
+
+
+print("".join([chr(x) for x in flag]))
+\end{minted}
+
+Zapisuje skrypt jako \emph{decrypt.py} i uruchamia go.
+
+\begin{minted}{text}
+$ python decrypt.py
+AGH{400-decrypt}
+\end{minted}
+
+Otrzymuje rozwiązanie tego zadania, czyli flagę \emph{AGH\{400-decrypt\}}.
+\clearpage
 
 \subsection{Zadanie 500-secret-shell}
 
 \subsection{Zadanie 600-custom-vm}
-
-\clearpage
-
-\bibliography{bibliography}
 
 \end{document}
