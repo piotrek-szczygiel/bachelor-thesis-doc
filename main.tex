@@ -717,7 +717,7 @@ o poprawnym rozwiązaniu zadania.
 
 \section{Zadanie 300-strcmp}
 
-Użytkownik pobiera plik \emph{strcmp} i sprawdza go programem \emph{file}.
+Użytkownik pobiera plik \emph{strcmp} i sprawdza go programem \mintinline{text}{file}.
 
 \begin{minted}[breaklines]{text}
 $ file strcmp
@@ -793,7 +793,8 @@ która jest rozwiązaniem tego zadania.
 
 \section{Zadanie 400-decrypt}
 
-Użytkownik pobiera plik \emph{decrypt} i podobnie jak wcześniej sprawdza go programem \emph{file}.
+Użytkownik pobiera plik \emph{decrypt} i podobnie jak wcześniej
+sprawdza go programem \mintinline{text}{file}.
 
 \begin{minted}[breaklines]{text}
 $ file decrypt
@@ -843,7 +844,7 @@ operacje XOR z kolejnymi bajtami klucza. Po przekroczeniu ostatniego bajtu klucz
 wraca do pierwszego, co zapewnia operacja \mintinline{c}{k = k + 1 & 3}.
 Biorąc pod uwagę, że liczby całkowite przechowywane
 są w pamięci w formie Little Endian, to klucz również można zapisać następująco:
-\emph{0xDE, 0xAD, 0xBE, 0xEF}. Następnie podgląda zawartość tablicy \emph{flag}.
+\emph{0xde, 0xad, 0xbe, 0xef}. Następnie podgląda zawartość tablicy \emph{flag}.
 
 \begin{figure}[H]
 \centering
@@ -855,9 +856,9 @@ Posiadając te informacje pisze skrypt w języku Python, który odwróci wcześn
 tablice \emph{flag} do wartości pierwotnej.
 
 \begin{minted}[breaklines]{python}
-flag = [0x90, 0xF9, 0xEB, 0x94, 0xEA, 0x9D, 0x8E, 0xC2, 0xAF, 0xDF, 0xCE, 0x8A, 0xB2, 0xCE, 0xD9, 0x92]
+flag = [0x90, 0xf9, 0xeb, 0x94, 0xea, 0x9d, 0x8e, 0xc2, 0xaf, 0xdf, 0xce, 0x8a, 0xb2, 0xce, 0xd9, 0x92]
 
-key = [0xDE, 0xAD, 0xBE, 0xEF]
+key = [0xde, 0xad, 0xbe, 0xef]
 for i in range(len(flag)):
     flag[i] ^= key[i % len(key)]
 
@@ -977,7 +978,7 @@ Idealnym do tego miejscem jest funkcja \emph{access\_secret\_shell}.
 \end{figure}
 
 Wybrany przez niego adres to \emph{080494a4} -- kiedy wykonanie programu przeniesie się w to miejsce,
-na stos zostanie wrzucony wskaźnik do ciągu \emph{/bin/sh}, a następnie zostanie wywołana
+na stos zostanie wrzucony wskaźnik do ciągu \mintinline{text}{/bin/sh}, a następnie zostanie wywołana
 funkcja \emph{system}, tym samym uruchamiając powłokę systemową. Wtedy korzystając z poleceń
 powłoki będzie mógł wyświetlić zawartość pliku \emph{access\_code.txt}.
 
@@ -1001,7 +1002,7 @@ a następnie doda pożądany adres:
 Pozostało mu już tylko wykonać exploit na zdalnej maszynie. Jednak samo przekazanie
 wyjścia tego skryptu na wejście programu \emph{secret-shell} nie zadziała, ponieważ
 po przekazaniu pożądanego ciągu znaków zamknie się standardowe wejście.
-Z tego powodu powłoka \emph{/bin/sh} natychmiast się wyłączy.
+Z tego powodu powłoka \mintinline{text}{/bin/sh} natychmiast się wyłączy.
 
 Korzysta on więc z prostego triku, który po wywołaniu programu zachowuje dostęp
 do standardowego wejścia, dzięki programowi \mintinline{text}{cat}.
@@ -1019,6 +1020,480 @@ ctf@de4848f994a7:/home/admin$ (python2 -c "print 'A' * 76 + '\xa4\x94\x04\x08'";
 W taki sposób otrzymuje rozwiązanie zadania, czyli flagę \emph{AGH\{500-secret-shell\}}.
 
 \section{Zadanie 600-vm}
+
+Użytkownik pobiera plik \emph{vm} i sprawdza go programem \mintinline{text}{file}.
+
+\begin{minted}[breaklines]{text}
+$ file vm
+vm: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=bfe399afd61b8d0bfe73a724b7866f67498435c4, for GNU/Linux 3.2.0, with debug_info, not stripped
+\end{minted}
+
+Z racji, że jest to 64-bitowy program na system Linux, uruchamia go.
+
+\begin{minted}{text}
+$ ./vm
+Enter the flag: test
+Incorrect flag!
+\end{minted}
+
+Schemat taki sam jak w poprzednich zadaniach -- wprowadza flagę i otrzymuje informację
+o tym, czy jest ona prawidłowa. Ponownie korzysta on więc z narzędzia Ghidra, aby
+przeanalizować działanie programu.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{600_main}
+\caption{Widok dekompilatora dla funkcji \emph{main} w narzędziu Ghidra}
+\end{figure}
+
+Widzi, że za sprawdzenie flagi odpowiada funkcja \emph{vm\_run} -- analizuje więc on
+funkcje z przedrostkami \emph{vm\_}. Zaczyna od funkcji \emph{vm\_init}, która jest
+wywoływana na samym początku programu\footnote{Przedstawiony kod funkcji w tym podrozdziale
+jest bezpośrednio przekopiowany z widoku dekompilatora narzędzia Ghidra}.
+
+\begin{minted}{c}
+void vm_init(VM *vm)
+
+{
+  vm->ip = vm->mem + 0x1337;
+  vm->sp = vm->stack;
+  vm->input_ptr = vm->input;
+  return;
+}
+\end{minted}
+
+Widzi, że funkcja inicjalizuje przekazaną do niej zmienną typu \emph{VM}.
+Sprawdza więc w widoku \emph{Structure Editor} jakie pola ta struktura zawiera.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=9cm]{600_struct}
+\caption{Widok \emph{Structure Editor} dla typu danych \emph{VM} w narzędziu Ghidra}
+\end{figure}
+
+Po nazwach zmiennych domyśla się, że jest to struktura dla swego rodzaju maszyny wirtualnej
+-- stąd przedrostki \emph{vm\_} (virtual machine). I tak kolejno \emph{mem} jest prawdopodobnie
+pamięcią maszyny, \emph{ip} -- instruction pointer, czyli wskaźnik na aktualną instrukcje,
+\emph{stack} oraz \emph{sp} to kolejno stos oraz wskaźnik na ostatni jego element, a \emph{input}
+oraz \emph{input\_ptr} to prawdopodobnie jakieś wejście użytkownika wraz ze wskaźnikiem.
+
+Wracając więc do funkcji \emph{vm\_init} widzi, że wskaźnik \emph{vm->ip} na początku wskazuje
+tam gdzie \emph{vm->mem} z przesunięciem o \emph{0x1337} bajtów. Wskaźnik \emph{vm->sp} ustawia
+się na \emph{vm->stack}, czyli początek stosu. Podobnie wskaźnik \emph{vm->input\_ptr} ustawia
+się po prostu na \emph{vm->input}.
+Przechodzi do analizowanie kolejnej funkcji wywoływanej zaraz po \emph{vm\_init} -- czyli
+\emph{vm\_load}.
+
+\begin{minted}{c}
+void vm_load(VM *vm,uint8_t *rom,size_t rom_size)
+
+{
+  memcpy(vm->mem + 0x1337,rom,rom_size);
+  return;
+}
+\end{minted}
+
+Widzi, że ładuje ona dane do pamięci również z takim samym przesunięciem, jak wcześniej
+ustawiony był \emph{instruction pointer}. Domyśla się więc, że ta funkcja odpowiada za
+załadowanie programu do pamięci maszyny wirtualnej.
+
+Następnie analizuje funkcje \emph{vm\_fill\_input} do której przekazywany jest tekst
+wprowadzony przez użytkownika.
+
+\begin{minted}{c}
+void vm_fill_input(VM *vm,char *input,int size)
+
+{
+  int i;
+  
+  if (0x80 < size) {
+                    /* WARNING: Subroutine does not return */
+    exit(5);
+  }
+  i = 0;
+  while (i < size) {
+    vm->input[i] = input[i];
+    i = i + 1;
+  }
+  return;
+}
+\end{minted}
+
+Funkcja sprawdza najpierw czy rozmiar wejścia nie przekracza \emph{0x80}, czyli 128 znaków.
+Następnie po prostu przepisuje bajt po bajcie podane wejście do zmiennej \emph{vm->input}.
+Użytkownik wie zatem już, że zmienna \emph{vm->input} zawiera wprowadzoną przez niego flagę.
+
+Zabiera się teraz za analizę funkcji \emph{vm\_run} -- czyli serca maszyny wirtualnej.
+Najpierw jednak sprawdza działanie funkcji pomocniczych, których użycia znajduje w środku
+funkcji \emph{vm\_run}.
+
+\begin{minted}{c}
+uint8_t vm_read_byte(VM *vm)
+
+{
+  uint8_t *puVar1;
+  
+  puVar1 = vm->ip;
+  vm->ip = puVar1 + 1;
+  return *puVar1;
+}
+\end{minted}
+
+\begin{minted}{c}
+short vm_read_short(VM *vm)
+
+{
+  vm->ip = vm->ip + 2;
+  return CONCAT11(vm->ip[-1],vm->ip[-2]);
+}
+\end{minted}
+
+Dochodzi do wniosku, że funkcje \emph{vm\_read\_byte} oraz \emph{vm\_read\_short}
+zwracają liczbę jedno lub dwu-bajtową pod wskaźnikiem \emph{vm->ip},
+a następnie przesuwają ten wskaźnik na instrukcje za tą liczbą.
+Funkcja \emph{CONCAT11}, jak wyczytał w dokumentacji narzędzia Ghidra -- skleja
+dwa bajty w jedną liczbę. Z racji, że bajty sklejane są w odwrotnej kolejności --
+oznacza to, że liczby przechowywane są w pamięci maszyny wirtualnej w formacie Little Endian.
+
+\begin{minted}{c}
+void vm_push(VM *vm,short value)
+
+{
+  short *psVar1;
+  
+  if (0x1fe < (long)((long)vm->sp - (long)vm->stack)) {
+                    /* WARNING: Subroutine does not return */
+    exit(3);
+  }
+  psVar1 = vm->sp;
+  vm->sp = psVar1 + 1;
+  *psVar1 = value;
+  return;
+}
+\end{minted}
+
+\begin{minted}{c}
+short vm_pop(VM *vm)
+
+{
+  if (vm->sp == vm->stack) {
+                    /* WARNING: Subroutine does not return */
+    exit(4);
+  }
+  vm->sp = vm->sp + -1;
+  return *vm->sp;
+}
+\end{minted}
+
+Funkcje \emph{vm\_push} oraz \emph{vm\_pop} kolejno wrzucają lub ściągają dwubajtową
+liczbę ze stosu. Po analizie funkcji pomocniczych przechodzi do analizy funkcji
+\emph{vm\_run}.
+
+Na początku tej funkcji znajduję się następujący fragment\footnote{Nazwa labela została
+zmieniona na \emph{VM\_LOOP} dla ułatwienia czytelności}:
+
+\begin{minted}{c}
+// Pominięto definicje wielu zmiennych
+
+VM_LOOP:
+  byte op = vm_read_byte(vm);
+\end{minted}
+
+Czyli wczytanie aktualnej instrukcji do zmiennej o nazwie \emph{op}. Po tym fragmencie
+następuję mnóstwo rozgałęzień \emph{if}. Analizuje on każde z osobna.
+
+\begin{minted}{c}
+if (op == 0xe1) {
+  sVar4 = vm_read_short(vm);
+  return (int)sVar4;
+}
+\end{minted}
+
+Jeśli przeczytanym bajtem był \emph{0xe1}, to pobierana jest dwubajtowa liczba, a następnie
+jest ona zwraca z funkcji \emph{vm\_run}. Oznacza to więc, że jest to swego rodzaju kod
+zatrzymujący działanie maszyny wirtualnej z ustawionym statusem w postaci kolejno
+wczytanej liczby.
+
+\begin{minted}{c}
+if (op == 0xdf) {
+  sVar4 = vm_read_short(vm);
+  if (vm->stack == vm->sp) {
+    vm->ip = vm->mem + sVar4;
+  }
+  goto VM_LOOP;
+}
+\end{minted}
+
+Instruckja \emph{0xdf} bierzę liczbę, a następnie sprawdza, czy zmienna \emph{vm->sp} wskazuje
+w to samo miejsce co \emph{vm->stack} -- czyli sprawdza czy stos jest pusty. Jeśli tak
+to ustawia zmienną \emph{vm->ip} na \emph{vm->mem} powiększoną o wartość pobranej liczby.
+
+\begin{minted}{c}
+if (op == 0xce) {
+  sVar4 = vm_pop(vm);
+  vm_push(vm,sVar4);
+  vm_push(vm,sVar4);
+  goto VM_LOOP;
+}
+\end{minted}
+
+Instruckja \emph{0xce} pobiera liczbę ze stosu, a następnie wrzuca ją na stos dwa razy.
+Można więc powiedzieć, że duplikuję ostatnią liczbę na stosie.
+
+\begin{minted}{c}
+if (op == 0xb1) {
+  if (0x7f < (long)(vm->input_ptr + -(long)vm->input)) {
+            /* WARNING: Subroutine does not return */
+    exit(6);
+  }
+  pbVar1 = vm->input_ptr;
+  vm->input_ptr = pbVar1 + 1;
+  vm_push(vm,(ushort)*pbVar1);
+  goto VM_LOOP;
+}
+\end{minted}
+
+Instrukcja \emph{0xb1} wrzuca na stos znak na który wskazuję zmienna \emph{vm->input\_ptr},
+a następnie przesuwa ten wskaźnik o jeden. Sprawdza również wcześniej czy zmienna
+\emph{vm->input\_ptr} nie wyszła poza bufor \emph{vm->input}.
+
+\begin{minted}{c}
+if (op == 0xa4) {
+  sVar4 = vm_read_short(vm);
+  vm_push(vm,sVar4);
+  goto VM_LOOP;
+}
+\end{minted}
+
+Instrukcja \emph{0xa4} wrzuca na stos zadaną liczbę.
+
+\begin{minted}{c}
+if (op == 0xa2) {
+  sVar4 = vm_pop(vm);
+  sVar5 = vm_pop(vm);
+  vm_push(vm,sVar5 * sVar4);
+  goto VM_LOOP;
+}
+\end{minted}
+
+Instrukcja \emph{0xa2} pobiera dwie liczby ze stosu, a następnie wrzuca na stos ich iloczyn.
+
+\begin{minted}{c}
+if (op == 0x9b) {
+  vm_pop(vm);
+  goto VM_LOOP;
+}
+\end{minted}
+
+Instrukcja \emph{0x9b} pobiera liczbę ze stosu i nic z nią nie robi.
+
+\begin{minted}{c}
+if (op == 0x66) {
+  sVar4 = vm_pop(vm);
+  vm_push(vm,sVar4 + 1);
+  goto VM_LOOP;
+}
+\end{minted}
+
+Instrukcja \emph{0x66} pobiera liczbę ze stosu i wrzuca ją z powrotem na stos powiększoną o 1.
+
+\begin{minted}{c}
+if (op == 0x03) {
+  uVar2 = vm_pop(vm);
+  uVar3 = vm_pop(vm);
+  vm_push(vm,uVar2 ^ uVar3);
+  goto VM_LOOP;
+}
+\end{minted}
+
+Instrukcja \emph{0x03} pobiera dwie liczby ze stosu, a następnie wrzuca na stos wynik operacji
+XOR na tych dwóch liczbach.
+
+\begin{minted}{c}
+else {
+  if (op != 0x52) goto VM_EXIT;
+  sVar4 = vm_read_short(vm);
+  sVar5 = vm_pop(vm);
+  if (sVar5 == 0) {
+    vm->ip = vm->mem + sVar4;
+  }
+  goto VM_LOOP;
+}
+\end{minted}
+
+Instrukcja \emph{0x52} sprawdza czy ostatnia liczba na stosie jest równa 0, jeśli tak
+to przenosi działanie programu we wskazane miejsce. Jeśli po dojściu do tego miejsca
+nie udało się dopasować instrukcji, to program przechodzi do \emph{VM\_EXIT}.
+
+\begin{minted}{c}
+VM_EXIT:
+                    /* WARNING: Subroutine does not return */
+  exit(2);
+\end{minted}
+
+Aby uporządkować sobie zdobyte informację, użytkownik tworzy tabelę instrukcji.
+
+\begin{table}[H]
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}llll@{}}
+\toprule
+Instrukcja & Ilość zmiennych & Nazwa & Opis \\ \midrule
+0xe1 & 1 & HALT & Zatrzymaj maszynę z podanym kodem wyjścia \\
+0xdf & 1 & JUMP\_EMPTY & Skocz w zadane miejsce, jeśli stos jest pusty \\
+0xce & 0 & DUPLICATE & Zduplikuj ostatnią liczbę na stosie \\
+0xb1 & 0 & PUSH\_INPUT & Wrzuć na stos kolejny znak z wejścia użytkownika \\
+0xa4 & 1 & PUSH & Wrzuć na stos podaną liczbę \\
+0xa2 & 0 & MULTIPLY & Pomnóż dwie ostatnie liczby na stosie \\
+0x9b & 0 & POP & Zdejmij ostatnią liczbę ze stosu \\
+0x66 & 0 & INCREMENT & Powiększ o 1 ostatnią liczbę na stosie \\
+0x03 & 0 & XOR & Wykonaj operację XOR dla dwóch ostatnich liczb na stosie \\
+0x52 & 1 & JUMP\_ZERO & Skocz w zadane miejsce, jeśli ostatnią liczbą na stosie jest 0 \\ \bottomrule
+\end{tabular}%
+}
+\caption{Tabela instrukcji maszyny wirtualnej}
+\end{table}
+
+Użytkownik w celu zrozumienia działania programu będzie musiał stworzyć deasembler dla maszyny wirtualnej.
+Najpierw jednak musi zdobyć zawartość tablicy \emph{ctf\_rom}, która przechowuje program w niej uruchamiany.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=7cm]{600_rom}
+\caption{Zawartość tablicy \emph{ctf\_rom} w widoku Listing narzędzie Ghidra}
+\end{figure}
+
+Posiadając wszystkie potrzebne rzeczy, użytkownik zaczyna pisanie deasemblera.
+Skorzysta w tym celu z języka Python. Korzystając z funkcjonalności narzędzia Ghidra
+kopiuje tablicę \emph{ctf\_rom} jako ciąg heksadecymalny. W swoim skrypcie
+zamienia go na tablicę liczb.
+
+\begin{minted}[breaklines]{python}
+import struct
+
+rom = "a4 55 c8 a4 72 00 a4 f9 d7 a4 5e 00 a4 19 b2 a4 a9 00 a4 84 f3 a4 47 00 a4 3f ab a4 c4 01 a4 df 80 a4 a6 02 a4 dd f1 a4 43 00 a4 48 8a a4 f5 00 a4 bf c7 a4 c8 00 a4 b5 9c a4 66 01 a4 3c ff a4 03 00 b1 ce 52 87 13 a2 03 66 52 79 13 e1 01 00 9b df 8e 13 e1 01 00 e1 00 00"
+
+rom = [int(x, 16) for x in rom.split(" ")]
+\end{minted}
+
+Definiuje zmienną \emph{ip}, która będzie przechowywać indeks tablicy \emph{rom} oraz tworzy
+funkcję wczytującą dwubajtową liczbę w formacie Little Endian.
+
+\begin{minted}{python}
+ip = 0
+
+
+def read_short():
+    global ip
+    short = struct.unpack("h", bytes(rom[ip : ip + 2]))[0]
+    ip += 2
+    return short
+\end{minted}
+
+Następnie tworzy pętle, która przechodzi po programie i wyświetla informację o napotkanych instrukcjach.
+Przed każdą instrukcją wyświetla wartość zmiennej \emph{ip} powiększoną o \emph{0x1337}, aby dostać
+informację pod jakim wirtualnym adresem ta instrukcja się znajduję.
+
+\begin{minted}{python}
+while ip < len(rom):
+    print(str(0x1337 + ip) + ":\t", end="")
+
+    op = rom[ip]
+    ip += 1
+
+    if op == 0xe1:
+        print(f"HALT {read_short()}")
+    elif op == 0xdf:
+        print(f"JUMP_EMPTY {read_short()}")
+    elif op == 0xce:
+        print("DUPLICATE")
+    elif op == 0xb1:
+        print("PUSH_INPUT")
+    elif op == 0xa4:
+        print(f"PUSH {read_short()}")
+    elif op == 0xa2:
+        print("MULTIPLY")
+    elif op == 0x9b:
+        print("POP")
+    elif op == 0x66:
+        print("INCREMENT")
+    elif op == 0x03:
+        print("XOR")
+    elif op == 0x52:
+        print(f"JUMP_ZERO {read_short()}")
+    else:
+        print(f"UNKNOWN OPCODE: {op}")
+        break
+\end{minted}
+
+Uruchamia teraz swój deasembler.
+
+\begin{minted}{text}
+$ python disassemble.py 
+4919:   PUSH -14251
+...
+4976:   PUSH 358
+4979:   PUSH -196
+4982:   PUSH 3
+4985:   PUSH_INPUT
+4986:   DUPLICATE
+4987:   JUMP_ZERO 4999
+4990:   MULTIPLY
+4991:   XOR
+4992:   INCREMENT
+4993:   JUMP_ZERO 4985
+4996:   HALT 1
+4999:   POP
+5000:   JUMP_EMPTY 5006
+5003:   HALT 1
+5006:   HALT 0
+\end{minted}
+
+Dla lepszego zrozumienia programu użytkownik tworzy sobie schemat blokowy jego działania
+oraz schemat zawartości stosu.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=10cm]{600_flowchart}
+\caption{Schemat blokowy działania programu}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=12cm]{600_stack}
+\caption{Zawartość stosu w poszczególnych etapach działania programu}
+\end{figure}
+
+Dzięki tej wizualizacji zauważył, że aby obliczyć kolejny znak flagi \emph{x},
+należy wziąć ze stosu liczbę \emph{a}, następnie liczbę \emph{b}
+i obliczyć dla nich równanie \(b \oplus ax + 1 = 0\).
+Przystępuje on więc do pisania programu znajdującego flagę.
+Do tablicy \emph{stack} wpisuje liczby, które znajdowały się po instrukcji
+\emph{PUSH} w wyniku działania deasemblera. Następnie metodą brute force\footnote{
+\url{https://pl.wikipedia.org/wiki/Atak_brute_force}} szuka znaku, który spełnia
+równanie i dodaje go do wynikowej flagi, którą na koniec wypisuje.
+
+\begin{minted}[breaklines]{python}
+stack = [-14251, 114, -10247, 94, -19943, 169, -3196, 71, -21697, 452, -32545, 678, -3619, 67, -30136, 245, -14401, 200, -25419, 358, -196, 3]
+flag = []
+
+while stack:
+    a = stack.pop()
+    b = stack.pop()
+
+    for x in range(256):
+        if b ^ (a * x) == -1:
+            flag.append(x)
+            break
+
+print("".join([chr(x) for x in flag]))
+\end{minted}
+
+Uruchamia go i otrzymuje rozwiązanie zadania, czyli flagę \emph{AGH\{600-vm\}}.
+
+\begin{minted}{text}
+$ python solve.py
+AGH{600-vm}
+\end{minted}
 
 \backmatter
 
