@@ -429,6 +429,152 @@ char flag[] = { 0x90, 0xf9, 0xeb, 0x94, 0xea, 0x9d, 0x8e, 0xc2, 0xaf, 0xdf, 0xce
 
 \section{Zadanie 500-secret-shell}
 
+Piąte zadanie będzie różnić się od pozostałych tym, że program będzie uruchamiany
+na zdalnym hoście i dostępny poprzez SSH. Na tym hoście utworzonych będzie dwóch użytkowników.
+Jednym z nich będzie użytkownik \emph{ctf} do którego dostęp będzie miał uczestnik rozwiązujący
+to zadanie. Drugim użytkownikiem będzie \emph{admin}, który będzie właścicielem pliku
+wykonywalnego \emph{secret-shell} oraz pliku zawierającego flagę \emph{access\_code.txt}.
+Użytkownik \emph{ctf} nie będzie posiadał praw odczytu do pliku z flagą, więc będzie
+musiał znaleźć jakiś sposób, aby te prawa uzyskać. Umożliwimy mu to tworząc podatny
+na atak Stack Buffer Overflow\footnote{
+\url{https://en.wikipedia.org/wiki/Stack_buffer_overflow}} program z ustawioną flagą SUID\footnote{
+\url{https://en.wikipedia.org/wiki/Setuid\#When_set_on_an_executable_file}}.
+Oznacza to, że mimo tego, że program będzie uruchamiał użytkownik \emph{ctf}, to będzie on
+działał z prawami użytkownika \emph{admin}.
+
+Poniżej przedstawiony uproszczony kod głównej funkcji programu \emph{secret-shell}.
+
+\begin{minted}{c}
+int main()
+{
+    gid_t gid = getegid();
+    uid_t uid = geteuid();
+    setresgid(gid, gid, gid);
+    setresuid(uid, uid, uid);
+
+    greeter();
+
+    char access_code[64];
+    FILE* file = fopen("/home/admin/access_code.txt", "r");
+    fgets(access_code, sizeof(access_code), file);
+    fclose(file);
+
+    char input[64];
+
+    while (true) {
+        printf("Enter the access code: ");
+        fgets(input, sizeof(input), stdin);
+
+        if (strcmp(access_code, input) == 0) {
+            puts("Access granted!");
+            access_secret_shell();
+            break;
+        } else {
+            puts("Access denied!");
+            printf("\n\n");
+        }
+    }
+
+    return 0;
+}
+\end{minted}
+
+Na początku ustawiamy, aby program działał z uprawnieniami użytkownika \emph{admin}.
+Zapewnione to będzie przez ustawienie flagi SUID na pliku wykonywalnym.
+Następnie wywołujemy funkcje \emph{greeter}, wczytujemy flagę do zmiennej i przechodzimy
+do głównej pętli. Pobiera ona kod dostępu do użytkownika, sprawdza go z prawidłowym kodem,
+a następnie przenosi go do funkcji \emph{access\_secret\_shell} lub informuje o
+nieprawidłowym kodzie i przenosi się na początek pętli.
+
+Poniżej przedstawione są uproszczone funkcje \emph{access\_secret\_shell} oraz \emph{greeter}.
+
+\begin{minted}{c}
+void access_secret_shell()
+{
+    puts("Welcome to secret shell!");
+    system("/bin/sh");
+    puts("Exiting secret shell...");
+}
+
+void greeter()
+{
+    char name[64];
+
+    printf("Welcome, enter your name: ");
+    gets(name);
+    printf("Hello, %s\n\n", name);
+}
+\end{minted}
+
+Jak widać funkcja \emph{access\_secret\_shell} jedynie uruchamia program \mintinline{text}{/bin/sh}.
+Z racji tego, że program jest uruchomiony z uprawnieniami \emph{admin}, będzie możliwe
+wyświetlenie flagi np. programem \mintinline{text}{cat}.
+Funkcja \emph{greeter} natomiast pobiera od użytkownika imię oraz je wyświetla.
+Pobiera je jednak niebezpieczną funkcją \emph{gets}, która jest podatna na ataki
+przepełnienia bufora -- nie sprawdza ona bowiem długości bufora do którego zapisuje dane i wpisuje
+je nawet po osiągnięciu jego końca.
+
+Plik źródłowy skompilowany będzie następującym poleceniem:
+
+\begin{minted}[breaklines]{text}
+$ gcc -std=c99 -m32 -fno-stack-protector -no-pie -fno-pic secret-shell.c -o secret-shell
+\end{minted}
+
+Flaga \mintinline{text}{-m32} zapewni, że program będzie 32-bitowy,
+\mintinline{text}{-fno-stack-protector} wyłączy Stack Canary\footnote{
+\url{https://en.wikipedia.org/wiki/Buffer_overflow_protection\#Canaries}},
+natomiast \emph{-no-pie -fno-pic} spowodują, że adresy funckji nie będą się zmieniać
+pomiędzy kolejnymi uruchomieniami. Żeby to jednak zapewnić trzeba również wyłączyć
+ASLR\footnote{\url{https://en.wikipedia.org/wiki/Address_space_layout_randomization}}
+na serwerze SSH następującym poleceniem.
+
+\begin{minted}{text}
+echo 0 | sudo tee /proc/sys/kernel/randomize_va_space
+\end{minted}
+
+Żeby nie ryzykować działania hosta na którym postawiony będzie serwer SSH wszystko
+będzie uruchomione w kontenerze za pomocą narzędzia Docker\footnote{
+\url{https://www.docker.com/}}. Poniżej przedstawiony przepis stawiania kontenera, czyli
+plik \emph{Dockerfile}.
+
+\begin{minted}[breaklines]{docker}
+FROM ubuntu:20.04
+
+RUN dpkg --add-architecture i386 \
+    && apt-get update \
+    && apt-get install -y libc6:i386 libncurses5:i386 libstdc++6:i386 openssh-server binutils python2 vim \
+    && useradd -m admin \
+    && useradd -s /bin/bash ctf \
+    && echo "ctf:agh-reverse-engineering" | chpasswd \
+    && mkdir -p /var/run/sshd
+
+COPY secret-shell /home/admin/secret-shell
+COPY decrypted_flag.txt /home/admin/access_code.txt
+
+RUN chown admin:admin /home/admin/secret-shell /home/admin/access_code.txt \
+    && chmod 4755 /home/admin/secret-shell \
+    && chmod 600 /home/admin/access_code.txt
+
+EXPOSE 22
+CMD ["/usr/sbin/sshd", "-D"]
+\end{minted}
+
+Kontener będzie postawiony na systemie Linux Ubuntu 20.04\footnote{\url{https://ubuntu.com/}}.
+Po zainstalowaniu potrzebnych aplikacji, dodajemy użytkownika \emph{admin} oraz użytkownika
+\emph{ctf} z hasłem \emph{agh-reverse-engineering}. Kopiujemy skompilowany wcześniej
+program \emph{secret-shell} oraz plik tekstowy z jawnie zapisaną flagą do pliku
+\emph{access\_code.txt}. Następnie ustawiamy odpowiednie uprawnienia, w tym bit SUID
+dla programu \emph{secret\_shell} i na koniec uruchamiamy serwer SSH.
+Kontener ten możemy teraz zbudować i uruchomić następującymi poleceniami.
+
+\begin{minted}{text}
+$ docker build -t secret-shell .
+$ docker run -d -p 2222:22 secret-shell
+\end{minted}
+
+Przekierowujemy zewnętrzny port 2222 do wewnętrznego portu kontenera 22, aby użytkownik
+miał dostęp do serwera SSH zarówno komputera hosta jak i kontenera.
+
 \section{Zadanie 600-vm}
 
 \chapter{Organizacja pracy}
@@ -762,8 +908,7 @@ total 20
 
 Zauważa plik \emph{access\_code.txt}, w którym prawdopodobnie znajduję się flaga.
 Niestety użytkownik \emph{ctf} nie posiada uprawnień do odczytania tego pliku.
-Jest też plik wykonywalny z ustawionym bitem SUID\footnote{
-\url{https://en.wikipedia.org/wiki/Setuid\#When_set_on_an_executable_file}}.
+Jest też plik wykonywalny z ustawionym bitem SUID.
 Oznacza to, że można uruchomić program \emph{secret-shell} z prawami użytkownika \emph{admin}.
 Uruchamia więc program \emph{secret-shell}.
 
@@ -782,7 +927,8 @@ Pobiera ten program na lokalny komputer w celu jego przeanalizowania.
 $ scp -P 2222 ctf@szczygiel.dev:/home/admin/secret-shell .
 \end{minted}
 
-Analizuje go narzędziem Ghidra. Rzuca mu się w oczy funkcja \emph{greeter} w której
+Analizuje go narzędziem Ghidra. Otrzymuje informację, że jest to 32-bitowy program
+na system Linux. Rzuca mu się w oczy funkcja \emph{greeter} w której
 imie użytkownika pobierane jest niebezpieczną funkcją \emph{gets}. Jest ona niebezpieczna,
 ponieważ nie kontroluje ona długości pobieranego wejścia i może prowadzić do przepełnienia
 bufora \emph{name} o rozmiarze 72 bajtów.
@@ -804,12 +950,11 @@ użytkownika \emph{admin}.
 \end{figure}
 
 Sprawdza zabezpieczenia programu wykonywalnego skryptem \mintinline{text}{checksec.sh}\footnote{
-\url{https://github.com/slimm609/checksec.sh}} i dowiaduje się, że wyłączony jest Stack Canary\footnote{
-\url{https://en.wikipedia.org/wiki/Buffer_overflow_protection\#Canaries}} oraz że plik nie jest
-position-independent executable\footnote{\url{https://en.wikipedia.org/wiki/Position-independent_code}}.
-Dochodzi więc do wniosku, że będzie mógł on wykonać atak Stack buffer overflow\footnote{
-\url{https://en.wikipedia.org/wiki/Stack_buffer_overflow}} nadpisujący adres powrotu
-z funkcji \emph{greeter}.
+\url{https://github.com/slimm609/checksec.sh}} i dowiaduje się, że wyłączony jest Stack Canary
+oraz że plik nie jest position-independent executable\footnote{
+\url{https://en.wikipedia.org/wiki/Position-independent_code}}.
+Dochodzi więc do wniosku, że będzie mógł on wykonać atak Stack buffer overflow
+nadpisujący adres powrotu z funkcji \emph{greeter}.
 
 Odpowiednio przepełniając bufor \emph{name}, będzie on mógł nadpisać adres powrotu
 funkcji. Dzięki temu po wyjściu z funkcji \emph{greeter} program przeniesie się do
