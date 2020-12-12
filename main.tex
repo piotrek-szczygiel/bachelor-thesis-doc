@@ -14,6 +14,8 @@
 \addbibresource{bibliography.bib}
 
 \usepackage{minted}
+\usepackage{perpage}
+\MakePerPage{footnote}
 
 \graphicspath{ {./images/} }
 
@@ -43,7 +45,7 @@ z dziedziny eksploitacji stron internetowych, flagę możemy znaleźć klikając
 \begin{figure}[H]
 \centering
 \includegraphics[width=10cm]{flag_page_source}
-\caption{Flaga \textbf{f7s0jkl} ukryta w źródle strony internetowej}
+\caption{Flaga \emph{f7s0jkl} ukryta w źródle strony internetowej}
 \end{figure}
 
 W tej pracy zaprezentowana będzie jednak grę oparta
@@ -741,6 +743,136 @@ Otrzymuje rozwiązanie tego zadania, czyli flagę \emph{AGH\{400-decrypt\}}.
 
 \section{Zadanie 500-secret-shell}
 
+W tym zadaniu zamiast pliku do pobrania, użytkownik otrzymuje następującą informację:
+
+\begin{minted}{text}
+$ ssh ctf@szczygiel.dev -p 2222
+ctf@szczygiel.dev's password: agh-reverse-engineering
+\end{minted}
+
+Uruchamia więc terminal i zgodnie ze wskazówkami loguje się na zadany host.
+W katalogu \emph{/home/admin/} znajduje następujące pliki:
+
+\begin{minted}{text}
+ctf@d35da2ee92fe:/home/admin$ ls -l
+total 20
+-rw------- 1 admin admin    22 Dec 11 21:26 access_code.txt
+-rwsr-xr-x 1 admin admin 16332 Dec 11 21:26 secret-shell
+\end{minted}
+
+Zauważa plik \emph{access\_code.txt}, w którym prawdopodobnie znajduję się flaga.
+Niestety użytkownik \emph{ctf} nie posiada uprawnień do odczytania tego pliku.
+Jest też plik wykonywalny z ustawionym bitem SUID\footnote{
+\url{https://en.wikipedia.org/wiki/Setuid\#When_set_on_an_executable_file}}.
+Oznacza to, że można uruchomić program \emph{secret-shell} z prawami użytkownika \emph{admin}.
+Uruchamia więc program \emph{secret-shell}.
+
+\begin{minted}{text}
+ctf@d35da2ee92fe:/home/admin$ ./secret-shell
+Welcome, enter your name: Piotr
+Hello, Piotr
+
+Enter the access code: test
+Access denied!
+\end{minted}
+
+Pobiera ten program na lokalny komputer w celu jego przeanalizowania.
+
+\begin{minted}{text}
+$ scp -P 2222 ctf@szczygiel.dev:/home/admin/secret-shell .
+\end{minted}
+
+Analizuje go narzędziem Ghidra. Rzuca mu się w oczy funkcja \emph{greeter} w której
+imie użytkownika pobierane jest niebezpieczną funkcją \emph{gets}. Jest ona niebezpieczna,
+ponieważ nie kontroluje ona długości pobieranego wejścia i może prowadzić do przepełnienia
+bufora \emph{name} o rozmiarze 72 bajtów.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{500_greeter}
+\caption{Widok dekompilatora dla funkcji \emph{greeter} w narzędziu Ghidra}
+\end{figure}
+
+Znajduję również funkcję \emph{access\_secret\_shell}, która uruchamia powłokę systemową.
+Pamiętając o ustawionym bicie SUID, oznacza to, że uruchomiona powłoka będzie z uprawnieniami
+użytkownika \emph{admin}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{500_access}
+\caption{Widok dekompilatora dla funkcji \emph{access\_secret\_shell} w narzędziu Ghidra}
+\end{figure}
+
+Sprawdza zabezpieczenia programu wykonywalnego skryptem \mintinline{text}{checksec.sh}\footnote{
+\url{https://github.com/slimm609/checksec.sh}} i dowiaduje się, że wyłączony jest Stack Canary\footnote{
+\url{https://en.wikipedia.org/wiki/Buffer_overflow_protection\#Canaries}} oraz że plik nie jest
+position-independent executable\footnote{\url{https://en.wikipedia.org/wiki/Position-independent_code}}.
+Dochodzi więc do wniosku, że będzie mógł on wykonać atak Stack buffer overflow\footnote{
+\url{https://en.wikipedia.org/wiki/Stack_buffer_overflow}} nadpisujący adres powrotu
+z funkcji \emph{greeter}.
+
+Odpowiednio przepełniając bufor \emph{name}, będzie on mógł nadpisać adres powrotu
+funkcji. Dzięki temu po wyjściu z funkcji \emph{greeter} program przeniesie się do
+wskazanego przez niego miejsca.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{500_stack}
+\caption{Zawartość stosu funkcji \emph{greeter} przed i po ataku}
+\end{figure}
+
+Aby rozwiązać zadanie, będzie potrzebował znaleźć takie miejsce w programie, gdzie
+po przeniesieniu się do niego uzyska w jakiś sposób dostęp do pliku \emph{access\_code.txt}.
+Idealnym do tego miejscem jest funkcja \emph{access\_secret\_shell}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{500_bin_sh_address}
+\caption{Fragment funkcji \emph{access\_secret\_shell} uruchamiający powłokę}
+\end{figure}
+
+Wybrany przez niego adres to \emph{080494a4} -- kiedy wykonanie programu przeniesie się w to miejsce,
+na stos zostanie wrzucony wskaźnik do ciągu \emph{/bin/sh}, a następnie zostanie wywołana
+funkcja \emph{system}, tym samym uruchamiając powłokę systemową. Wtedy korzystając z poleceń
+powłoki będzie mógł wyświetlić zawartość pliku \emph{access\_code.txt}.
+
+Pozostaje mu więc tylko przygotować exploit, który przepełni bufor
+w taki sposób, aby adres powrotu wskazywał właśnie na to miejsce. Musi też pamiętać
+o tym, że adresy w pamięci przechowywane są w formacie Little Endian, więc adres
+\emph{080494a4} będzie musiał przekazać jako \emph{a4940408}.
+
+Przygotowuje więc prosty jednolinijkowiec w języku Python 2, wypisujący ciąg znaków,
+który wypełni bufor oraz zapisany rejestr EBP literkami \emph{A},
+a następnie doda pożądany adres:
+
+\mintinline{python}{print 'A' * 76 + '\xa4\x94\x04\x08'}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=6cm]{500_overflow}
+\caption{Zawartość stosu funkcji \emph{greeter} po wykonaniu exploita}
+\end{figure}
+
+Pozostało mu już tylko wykonać exploit na zdalnej maszynie. Jednak samo przekazanie
+wyjścia tego skryptu na wejście programu \emph{secret-shell} nie zadziała, ponieważ
+po przekazaniu pożądanego ciągu znaków zamknie się standardowe wejście.
+Z tego powodu powłoka \emph{/bin/sh} natychmiast się wyłączy.
+
+Korzysta on więc z prostego triku, który po wywołaniu programu zachowuje dostęp
+do standardowego wejścia, dzięki programowi \mintinline{text}{cat}.
+
+\begin{minted}[breaklines]{text}
+ctf@de4848f994a7:/home/admin$ (python2 -c "print 'A' * 76 + '\xa4\x94\x04\x08'"; cat) | ./secret-shell
+\end{minted}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{500_solution}
+\caption{Uruchomienie exploita i rozwiązanie zadania}
+\end{figure}
+
+W taki sposób otrzymuje rozwiązanie zadania, czyli flagę \emph{AGH\{500-secret-shell\}}.
+
 \section{Zadanie 600-vm}
 
 \backmatter
@@ -751,7 +883,7 @@ Otrzymuje rozwiązanie tego zadania, czyli flagę \emph{AGH\{400-decrypt\}}.
 %\cleardoublepage
 %\listoftables
 
-%\cleardoublepage
-%\printbibliography
+\cleardoublepage
+\printbibliography
 
 \end{document}
