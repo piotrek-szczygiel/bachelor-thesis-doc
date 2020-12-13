@@ -48,7 +48,7 @@ z dziedziny eksploitacji stron internetowych, flagę możemy znaleźć klikając
 \caption{Flaga \emph{f7s0jkl} ukryta w źródle strony internetowej}
 \end{figure}
 
-W tej pracy zaprezentowana będzie jednak grę oparta
+W tej pracy zaprezentowana będzie jednak gra oparta
 wyłącznie o Reverse Engineering (ang. Inżynieria Wsteczna).
 Inżynieria wsteczna oprogramowania może odbywać się na różne sposoby.
 Może to być przykładowo wykorzystanie tzw. snifferów do analizy protokołów
@@ -577,6 +577,396 @@ miał dostęp do serwera SSH zarówno komputera hosta jak i kontenera.
 
 \section{Zadanie 600-vm}
 
+W szóstym i zarazem ostatnim zadaniu stworzymy prostą maszynę wirtualną, a dokładniej
+interpreter wymyślonego przez nas kodu bajtowego. Następnie napiszemy program sprawdzający
+poprawność flagi, który będzie uruchamiany wewnątrz tej maszyny. Zacznijmy od działania
+samego interpretera.
+
+\begin{minted}{c}
+// Generated header file containing ROM char array
+#include "ctf.h"
+
+#define MEMORY_SIZE 0x7fff
+#define MEMORY_ORIGIN 0x1337
+#define STACK_SIZE 0x0100
+#define INPUT_SIZE 128
+
+typedef struct VM {
+    uint8_t mem[MEMORY_SIZE];
+    uint8_t* ip;
+
+    short stack[STACK_SIZE];
+    short* sp;
+
+    uint8_t input[INPUT_SIZE];
+    uint8_t* input_ptr;
+} VM;
+\end{minted}
+
+Stan naszej maszyny będzie przechowywany w strukturze \emph{VM}. Zawiera ona kilka zmiennych
+potrzebnych do jej prawidłowego działania. Tablica \emph{mem} będzie zawierała pamięć operacyjną --
+wczytywany będzie do niej program. Wskaźnik \emph{ip}, czyli instruction pointer (ang. licznik programu)
+wskazywać będzie na adres aktualnie wykonywanej instrukcji -- odpowiednik rejestru \emph{EIP}
+w 32 bitowych procesorach x86. Warto też dodać, że nasza maszyna będzie maszyną stosową
+-- operacje będą wykonywane na stosie i nie będzie ona posiadać rejestrów pomocniczych.
+Łatwo się więc domyślić, że tablica \emph{stack} oraz wskaźnik \emph{sp}
+to stos oraz wskaźnik na jego ostatni element. Na koniec jest tablica \emph{input},
+która będzie przechowywać flagę wprowadzoną przez użytkownika po uruchomieniu programu.
+Zamiast tego moglibyśmy ładować wejście użytkownika pod wcześniej ustalonym adresem pamięci
+operacyjnej, ale taki sposób jest czytelniejszy. Wskaźnik \emph{input\_ptr} będzie wskazywać
+na początku na pierwszy znak wejścia użytkownika. Dodamy do maszyny instrukcję, która będzie ten
+znak wrzucać na stos i przesuwać wskaźnik na kolejny znak. Dzięki temu wykonywany na maszynie
+program będzie miał dostęp do wejścia użytkownika znak po znaku w prosty sposób.
+Zapoznajmy się teraz z funkcjami inicjalizującymi maszynę.
+
+\begin{minted}{c}
+void vm_init(VM* vm)
+{
+    vm->ip = vm->mem + MEMORY_ORIGIN;
+    vm->sp = vm->stack;
+    vm->input_ptr = vm->input;
+}
+
+void vm_load(VM* vm, const uint8_t* rom, size_t rom_size)
+{
+    memcpy(vm->mem + MEMORY_ORIGIN, rom, rom_size);
+}
+\end{minted}
+
+Funkcja \emph{vm\_init} ustawia licznik programu na tablice pamięci operacyjnej powiększoną o stałą
+\emph{MEMORY\_ORIGIN}. W to samo miejsce potem funkcja \emph{vm\_load} wczyta program. Sama stała
+\emph{MEMORY\_ORIGIN} nie ma większego znaczenia i ma na celu jedynie minimalne utrudnienie użytkownikowi
+śledzenie adresów instrukcji. Następnie funkcja \emph{vm\_init} ustawia wskaźnik stosu na jego początek
+oraz wskaźnik wejścia na początek tablicy \emph{input}.
+
+Zanim przejdziemy do opisu instrukcji oraz interpretera zapoznajmy się z kilkoma funkcjami pomocniczymi.
+Przedstawiony kod będzie pozbawiony sprawdzania błędów.
+
+\begin{minted}{c}
+void vm_push(VM* vm, short value)
+{
+    *vm->sp++ = value;
+}
+
+short vm_pop(VM* vm)
+{
+    return *--vm->sp;
+}
+
+void vm_fill_input(VM* vm, const char* input, int size)
+{
+    memcpy(vm->input, input, size);
+}
+
+uint8_t vm_read_byte(VM* vm)
+{
+    return *vm->ip++;
+}
+
+short vm_read_short(VM* vm)
+{
+    vm->ip += 2;
+    return *(vm->ip - 2) | *(vm->ip - 1) << 8;
+}
+\end{minted}
+
+Funkcje \emph{vm\_push} oraz \emph{vm\_pop} kolejno wrzucają oraz ściągają liczbę typu \emph{short} ze stosu.
+Funkcja \emph{vm\_fill\_input} kopiuje wejście użytkownika do tablicy \emph{vm->input}.
+Funkcje \emph{vm\_read\_byte} oraz \emph{vm\_read\_short} czytają kolejno jedno lub dwubajtową liczbę
+na która wskazuję licznik programu, a następnie przesuwają ten licznik na kolejną instrukcję.
+Przechodzimy teraz do głównej funkcji czyli \emph{vm\_run}.
+
+\begin{minted}{c}
+int vm_run(VM* vm)
+{
+    for (;;) {
+        uint8_t opcode = vm_read_byte(vm);
+
+        switch (opcode) {
+\end{minted}
+
+Funkcja ta w nieskończonej pętli wczytuje bajt, po czym wykonuje odpowiednią instrukcję.
+Przejdziemy teraz po kolei po każdym obsługiwanym kodzie operacji.
+
+\begin{minted}{c}
+        case OP_HALT: {
+            short value = vm_read_short(vm);
+            return value;
+        }
+\end{minted}
+
+Instrukcja \emph{OP\_HALT} kończy działanie maszyny z podanym kodem statusu.
+
+\begin{minted}{c}
+        case OP_PUSH: {
+            short value = vm_read_short(vm);
+            vm_push(vm, value);
+            break;
+        }
+\end{minted}
+
+Instrukcja \emph{OP\_PUSH} wrzuca podaną liczbę na stos.
+
+\begin{minted}{c}
+        case OP_POP: {
+            vm_pop(vm);
+            break;
+        }
+\end{minted}
+
+Instrukcja \emph{OP\_POP} ściąga liczbę ze stosu.
+
+\begin{minted}{c}
+        case OP_XOR: {
+            short a = vm_pop(vm);
+            short b = vm_pop(vm);
+            short result = a ^ b;
+            vm_push(vm, result);
+            break;
+        }
+\end{minted}
+
+Instrukcja \emph{OP\_XOR} ściąga dwie liczby ze stosu, a następnie wrzuca na stos wynik
+operacji XOR na tych liczbach.
+
+\begin{minted}{c}
+        case OP_MUL: {
+            short a = vm_pop(vm);
+            short b = vm_pop(vm);
+            short result = a * b;
+            vm_push(vm, result);
+            break;
+        }
+\end{minted}
+
+Instrukcja \emph{OP\_MUL} ściąga dwie liczby ze stosu, a następnie wrzuca na stos ich iloczyn.
+
+\begin{minted}{c}
+        case OP_INP: {
+            if (vm->input_ptr - vm->input >= INPUT_SIZE) {
+                exit(6);
+            }
+            uint8_t inp = *vm->input_ptr++;
+            vm_push(vm, inp);
+            break;
+        }
+\end{minted}
+
+Instrukcja \emph{OP\_INP} wrzuca na stos kolejny znak z bufora \emph{vm->input}.
+
+\begin{minted}{c}
+        case OP_JZ: {
+            short jmp = vm_read_short(vm);
+            if (vm_pop(vm) == 0) {
+                vm->ip = vm->mem + jmp;
+            }
+            break;
+        }
+\end{minted}
+
+Instrukcja \emph{OP\_JZ} ściąga liczbę ze stosu i jeśli jest ona równa 0 to przenosi
+działanie programu pod zadany adres.
+
+\begin{minted}{c}
+        case OP_DUP: {
+            short value = vm_pop(vm);
+            vm_push(vm, value);
+            vm_push(vm, value);
+            break;
+        }
+\end{minted}
+
+Instrukcja \emph{OP\_DUP} duplikuje ostatnią liczbę na stosie.
+
+\begin{minted}{c}
+        case OP_INC: {
+            short value = vm_pop(vm);
+            short result = value + 1;
+            vm_push(vm, result);
+            break;
+        }
+\end{minted}
+
+Instrukcja \emph{OP\_INC} dodaje 1 do ostatniej liczby na stosie.
+
+\begin{minted}{c}
+        case OP_JEMP: {
+            short jmp = vm_read_short(vm);
+            if (vm->stack == vm->sp) {
+                vm->ip = vm->mem + jmp;
+            }
+            break;
+        }
+\end{minted}
+
+Instrukcja \emph{OP\_JEMP} przenosi działanie programu pod wskazany adres jeśli stos jest pusty.
+
+\begin{minted}{c}
+        default: {
+            exit(2);
+        }
+\end{minted}
+
+Jeśli nie uda się dopasować żadnej instrukcji, to maszyna się wyłączy.
+Musimy jeszcze zdefiniować kod bajtowy dla każdej instrukcji.
+Przypisane one zostały losowo.
+
+\begin{minted}{c}
+typedef enum Opcode {
+    OP_HALT = 225,
+    OP_PUSH = 164,
+    OP_POP = 155,
+    OP_XOR = 3,
+    OP_MUL = 162,
+    OP_INP = 177,
+    OP_JZ = 82,
+    OP_DUP = 206,
+    OP_INC = 102,
+    OP_JEMP = 223,
+} Opcode;
+\end{minted}
+
+Na koniec zostaje jeszcze funkcja \emph{main}, która pobiera flagę od użytkownika,
+uruchamia maszynę wirtualną i sprawdza jej kod wyjścia (program uruchamiany na maszynie,
+będzie zwracał 0, jeśli flaga będzie prawidłowa).
+
+\begin{minted}{c}
+VM vm;
+int main()
+{
+    vm_init(&vm);
+    vm_load(&vm, ctf_rom, ctf_rom_len);
+
+    char flag[INPUT_SIZE];
+
+    printf("Enter the flag: ");
+    fgets(flag, sizeof(flag), stdin);
+
+    flag[strlen(flag) - 1] = '\0';
+    vm_fill_input(&vm, flag, strlen(flag));
+
+    int result = vm_run(&vm);
+
+    if (result == 0) {
+        puts("Correct flag!");
+    } else {
+        puts("Incorrect flag!");
+    }
+
+    return result;
+}
+\end{minted}
+
+Kiedy mamy gotową maszynę wirtualną musimy teraz napisać program, który na niej
+uruchomimy. Program napiszemy korzystając z narzędzia Netwide Assembler\footnote{
+\url{http://www.nasm.us/}}. Stworzymy najpierw specjalny plik \emph{vm.inc}, który
+zdefiniuje instrukcje dla maszyny i ułatwi nam napisanie programu. Poniżej
+przedstawiony fragment tego pliku.
+
+\begin{minted}{nasm}
+[org 0x1337]
+
+%macro push 1
+db 164
+dw %1
+%endmacro
+
+%macro pop 0
+db 155
+%endmacro
+\end{minted}
+
+Zawiera on definicje makr o nazwie takiej jak zdefiniowane przez maszynę instrukcje.
+Makra mogą również przyjmować argumenty (ilość przyjmowanych argumentów znajduję się
+obok nazwy makra), jak np makro \emph{push}. Polecenie \emph{db} oznacza wyemitowanie bajtu,
+natomiast \emph{dw} oznacza wyemitowanie słowa (czyli dwóch bajtów). W pierwszej linijce
+ustawiamy początek adresacji na \emph{0x1337} tak samo jak w kodzie źródłowym
+maszyny wirtualnej. Z takim plikiem definicji możemy przystąpić do pisania programu
+sprawdzającego poprawność flagi. Działanie programu zostało przedstawione w rozdziale piątym
+na następujących rysunkach: \nameref{fig:600_flowchart} oraz \nameref{fig:600_stack}.
+Możemy teraz przystąpić do pisania kodu programu w pliku \emph{ctf.nasm}.
+
+\begin{minted}{nasm}
+%include "vm.inc"
+%include "ctf.push"
+
+; Validation loop
+check_loop:
+inp
+dup
+jz maybe
+mul
+xor
+inc
+jz check_loop
+
+; Invalid character
+bad:
+halt 1
+
+; All checked characters valid, but maybe not long enough
+maybe:
+pop
+jemp good
+halt 1
+
+; All characters valid, and length is the same
+good:
+halt 0
+\end{minted}
+
+Potrzebujemy jeszcze wygenerować sekwencje instrukcji \emph{push}, które zapiszemy
+do pliku \emph{ctf.push}. Skrypt generujący te instrukcję nazwiemy \emph{ctf.py}.
+
+\begin{minted}{python}
+import random
+
+flag = input()
+max = 0x7FFF
+
+for f in flag[::-1]:
+    x = ord(f)
+    rand = random.randint(0, max // x)
+    print("push", ~(rand * x))
+    print("push", rand)
+\end{minted}
+
+Pobiera on flagę ze standardowego wejścia, a następnie dla każdego znaku flagi
+(przechodząc po nich od tyłu) generuje dwie instrukcje \emph{push}.
+Pierwsza z nich wrzuca zanegowany iloczyn losowej liczby ze znakiem flagi.
+Druga wrzuca samą losową liczbę. Opiera się to na następującym równaniu:
+\( \neg x \oplus x = -1 \).
+
+Możemy teraz przystąpić do finalnej kompilacji. Najpierw generujemy sekwencje
+instrukcji \emph{push} i zapisujemy je do pliku \emph{ctf.push}.
+
+\begin{minted}{text}
+$ ctf.py > ctf.push
+AGH{600-vm}
+\end{minted}
+
+Następnie asemblujemy kod programu uruchamianego w środku maszyny wirtualnej
+do pliku \emph{ctf.rom}.
+
+\begin{minted}{text}
+$ nasm ctf.nasm -o ctf.rom
+\end{minted}
+
+Konwertujemy plik \emph{ctf.rom} na tablicę \emph{char[]} języka C, dzięki czemu
+będziemy mogli zamieścić program bezpośrednio w pliku wykonywalnym maszyny
+wirtualnej.
+
+\begin{minted}{text}
+$ xxd -i ctf.rom > ctf.h
+\end{minted}
+
+Plik źródłowy maszyny wirtualnej załącza ten plik dyrektywą \emph{include}.
+Kompilujemy więc finałowy program, który będzie zadaniem gotowym do uruchomienia.
+
+\begin{minted}{text}
+$ gcc -g -std=c99 vm.c -o vm
+\end{minted}
+
 \chapter{Organizacja pracy}
 
 \chapter{Przykłady rozwiązań zadań}
@@ -689,7 +1079,7 @@ się, że funkcja \emph{\_show\_flag} decyduję o tym czy flaga zostanie wyświe
 \begin{figure}[H]
 \centering
 \includegraphics{200_ida_show_flag}
-\caption{Kod asemblera x86 dla funkcji \emph{\_show\_flag}}
+\caption{Funkcja \emph{\_show\_flag} w grafowym widoku programu IDA}
 \end{figure}
 
 Jedyne co ta funkcja robi to zwraca liczbę 0 -- czyli \emph{false}.
@@ -700,7 +1090,7 @@ program, aby funkcja ta zwracała 1 -- czyli \emph{true}.
 \begin{figure}[H]
 \centering
 \includegraphics{200_ida_patch}
-\caption{Modyfikacja instrukcji, aby zwracała 1 zamiast 0}
+\caption{Modyfikacja instrukcji \emph{mov eax, 0} na \emph{mov eax, 1} w programie IDA}
 \end{figure}
 
 Po zaaplikowaniu patch'a oraz ponownym uruchomieniu programu użytkownikowi ukazuję się
@@ -1104,24 +1494,18 @@ wprowadzony przez użytkownika.
 void vm_fill_input(VM *vm,char *input,int size)
 
 {
-  int i;
-  
   if (0x80 < size) {
                     /* WARNING: Subroutine does not return */
     exit(5);
   }
-  i = 0;
-  while (i < size) {
-    vm->input[i] = input[i];
-    i = i + 1;
-  }
+  memcpy(vm->input,input,(long)size);
   return;
 }
 \end{minted}
 
 Funkcja sprawdza najpierw czy rozmiar wejścia nie przekracza \emph{0x80}, czyli 128 znaków.
-Następnie po prostu przepisuje bajt po bajcie podane wejście do zmiennej \emph{vm->input}.
-Użytkownik wie zatem już, że zmienna \emph{vm->input} zawiera wprowadzoną przez niego flagę.
+Następnie kopiuje podany bufor \emph{input} do zmiennej \emph{vm->input}.
+Użytkownik wie już zatem, że zmienna \emph{vm->input} zawiera wprowadzoną przez niego flagę.
 
 Zabiera się teraz za analizę funkcji \emph{vm\_run} -- czyli serca maszyny wirtualnej.
 Najpierw jednak sprawdza działanie funkcji pomocniczych, których użycia znajduje w środku
@@ -1354,7 +1738,7 @@ Instrukcja & Ilość zmiennych & Nazwa & Opis \\ \midrule
 \end{table}
 
 Użytkownik w celu zrozumienia działania programu będzie musiał stworzyć deasembler dla maszyny wirtualnej.
-Najpierw jednak musi zdobyć zawartość tablicy \emph{ctf\_rom}, która przechowuje program w niej uruchamiany.
+Najpierw jednak musi zdobyć zawartość tablicy \emph{ctf\_rom}, która przechowuje uruchamiany w tej maszynie program.
 
 \begin{figure}[H]
 \centering
@@ -1455,12 +1839,14 @@ oraz schemat zawartości stosu.
 \centering
 \includegraphics[width=10cm]{600_flowchart}
 \caption{Schemat blokowy działania programu}
+\label{fig:600_flowchart}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=12cm]{600_stack}
 \caption{Zawartość stosu w poszczególnych etapach działania programu}
+\label{fig:600_stack}
 \end{figure}
 
 Dzięki tej wizualizacji zauważył, że aby obliczyć kolejny znak flagi \emph{x},
