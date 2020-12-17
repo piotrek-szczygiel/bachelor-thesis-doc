@@ -10,12 +10,14 @@
 \degreetype{Stacjonarne}
 \date{2020}
 
-\usepackage[backend=biber,doi=true,url=false]{biblatex}
-\addbibresource{bibliography.bib}
+%\usepackage[backend=biber,doi=true,url=false]{biblatex}
+%\addbibresource{bibliography.bib}
 
 \usepackage{minted}
-\usepackage{perpage}
-\MakePerPage{footnote}
+\usepackage[toc,page]{appendix}
+
+\renewcommand\appendixtocname{Dodatki}
+\renewcommand\appendixpagename{Dodatki}
 
 \graphicspath{ {./images/} }
 
@@ -28,8 +30,6 @@
 \mainmatter
 
 \chapter{Cel prac i wizja produktu}
-
-\section{Wprowadzenie}
 
 Gra typu Capture-the-Flag jest to rodzaj zawodów z ogólnie pojętego
 bezpieczeństwa komputerowego. Ich celem zwykle jest edukacja uczestników
@@ -49,14 +49,14 @@ z dziedziny eksploitacji stron internetowych, flagę możemy znaleźć klikając
 \end{figure}
 
 W tej pracy zaprezentowana będzie jednak gra oparta
-wyłącznie o Reverse Engineering (ang. Inżynieria Wsteczna).
+wyłącznie o inżynierie wsteczną (ang. reverse engineering).
 Inżynieria wsteczna oprogramowania może odbywać się na różne sposoby.
 Może to być przykładowo wykorzystanie tzw. snifferów do analizy protokołów
 komunikacyjnych aplikacji internetowej. W tym wypadku będzie ona jednak
 zazwyczaj oznaczała proces analizy programu, aby zrozumieć co robi
 oraz w jaki sposób. Przedstawione zadania można by też podpiąć do kategorii
-eksploitacji binarnej (ang. Binary Exploitation), która w pewny sposób pokrywa
-się z zagadnieniami Reverse Engineeringu. Jest to mianowicie proces
+eksploitacji binarnej (ang. binary exploitation), która w pewny sposób pokrywa
+się z zagadnieniami inżynierii wstecznej. Jest to mianowicie proces
 wykorzystywania niedoskonałości programów w celu zmuszenia ich do zrobienia
 czegoś, czego w normalnej sytuacji nie powinny robić. Te dwie kategorie pokrywają
 się ze sobą, ponieważ zazwyczaj nie jest możliwe rozwiązanie zadania z kategorii
@@ -66,19 +66,12 @@ Produktem końcowym będzie zbiór kilku zadań udostępniony na platformie webo
 Platforma sama w sobie nie jest niczym specjalnym, udostępnia jedynie takie powszechne
 funkcjonalności jak rejestracja użytkowników, ranking najlepszych graczy,
 pobieranie zadań oraz interfejs umożliwiający wprowadzanie znalezionych
-flag. Z tego względu użyta zostanie gotowa platforma CTFd\footnote{\url{https://ctfd.io/}}.
-Użycie takiego gotowego rozwiązania pozwoli w pełni skupić się na samych zadaniach,
+flag. Użyta zostanie gotowa platforma, aby w pełni skupić się na samych zadaniach,
 a ominąć takie kwestie jak np. gracze łamiący zabezpieczenia platformy.
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=10cm]{ctfd}
-\caption{Przykładowe zadanie na stronie demonstracyjnej CTFd}
-\end{figure}
-
 W tej pracy opisany zostanie zarówno proces tworzenia poszczególnych zadań,
-jak i przykładowe ich rozwiązania. Użyte zostało słowo "przykładowe", ponieważ
-w takiej kategorii jak Binary Exploitation / Reverse Engineering liczba sposobów
+jak i przykładowe ich rozwiązania. Użyte zostało słowo ,,przykładowe'', ponieważ
+w takiej kategorii jak Binary Exploitation lub Reverse Engineering liczba sposobów
 na rozwiązanie danego zadania jest ograniczona jedynie przez wyobraźnie uczestnika.
 Nie ograniczymy się również do korzystania ciągle z tych samych narzędzi.
 Pokazane zostaną różnorodne podejścia do analizy i rozwiązywania wyzwań.
@@ -87,7 +80,7 @@ Na początku uczestnik będzie miał szansę rozwiązać proste zadania,
 zachęcające go do dalszej rozgrywki. Finalne zadania powinny stanowić wyzwanie
 nawet dla doświadczonych graczy.
 
-\section{Dostępne platformy}
+\section{Motywacja}
 
 Aktualnie istnieje wiele różnych zawodów CTF online. Jednym z popularniejszych
 jest \mbox{picoCTF}\footnote{\url{https://picoctf.com/}}.
@@ -101,10 +94,16 @@ Można tam wejść kiedykolwiek, zalogować się i zająć się rozwiązywaniem 
 
 Główną motywacją do napisania tej pracy jest fakt, że strony tego typu często skupiają
 się na zadaniach w takich kategoriach jak Forensics czy Web Exploitation.
-Mnie natomiast bardzo interesuję temat inżynierii wstecznej i chciałem
-przygotować wyzwania oparte o zadania tylko z tej kategorii.
+Brakuje natomiast platform z zadaniami typowo o tematyce inżynierii
+wstecznej, na której skupi się ta praca.
 
-\section{Języki programowania i narzędzia}
+\section{Studium wykonalności}
+
+Zadania CTF mogą być tworzone z wykorzystaniem różnych technologii.
+Jeśli chodzi jednak konkretnie o zadania z kategorii inżynierii wstecznej
+nie ma dużego wyboru -- musimy wybrać niskopoziomowy kompilowany język.
+
+\subsection{Język programowania i narzędzia}
 
 Zadania będą tworzone w języku C. Jest to powszechnie znany język, który
 z wyłączoną zbyt agresywną optymalizacją ze strony kompilatora, generuje
@@ -123,16 +122,6 @@ jak \emph{Cutter}, czy używana przez NSA \emph{Ghidra}.
 
 \chapter{Zakres funkcjonalności}
 
-\section{Platforma}
-
-Do interfejsu webowego skorzystamy z gotowej platformy CTFd.
-Finalny produkt będzie dostępny pod adresem
-\href{https://ctf.szczygiel.dev}{https://ctf.szczygiel.dev}.
-Strona postawiona będzie na prywatnym serwerze VPS. Platforma będzie
-uruchomiona w środowisku docker, a wystawiona do świata będzie poprzez serwer
-Caddy\footnote{\url{https://caddyserver.com/}}, który w prosty sposób zapewni nam HTTPS,
-dzięki organizacji Let's Encrypt\footnote{\url{https://letsencrypt.org/}}.
-
 \section{Użytkownicy}
 
 Użytkownikiem systemu będzie każda osoba zainteresowana rozwiązywaniem
@@ -142,27 +131,107 @@ w dziale informatycznym, jak i osoba dla której jest to jedynie hobby.
 Wszystkie gotowe zadania zostaną wrzucone na platformę, dzięki czemu
 każda zainteresowana osoba będzie mogła spróbować swoich sił.
 
-\section{Zadania}
+\section{Wymagania funkcjonalne}
 
 Każde z zadań będzie sprawdzało różne umiejętności rozwiązujących je użytkowników.
 Kolejne zadania będą miały coraz większy stopień trudności. Liczba przy nazwie zadania
 oznacza ilość punktów, które użytkownik dostanie za prawidłowe rozwiązanie.
+Poniżej przedstawione są zadania wraz z umiejętnościami użytkownika,
+które przetestują.
 
 \subsection{100-simple}
+\begin{itemize}
+    \item Podstawowa znajomość konstrukcji i działania plików wykonywalnych
+    \item Umiejętność korzystania z narzędzi do poglądu zawartości plików binarnych
+    (np. edytor heksadecymalny lub program \mintinline{text}{strings})
+\end{itemize}
+
 \subsection{200-game}
+
+\begin{itemize}
+    \item Obsługa deasemblerów x86
+    \item Podstawowa znajomość języka Asembler x86
+    \item Obsługa narzędzi do patchowania plików wykonywalnych
+\end{itemize}
+
 \subsection{300-strcmp}
+
+\begin{itemize}
+    \item Znajomość sposobów wywoływania funkcji -- ABI\footnote{
+    \url{https://pl.wikipedia.org/wiki/Interfejs_binarny_aplikacji}}
+    \item Obsługa narzędzi do debugowania programów bez kodu źródłowego
+\end{itemize}
+
 \subsection{400-decrypt}
+
+\begin{itemize}
+    \item Obsługa narzędzi dekompilujących pliki wykonywalne jak np. IDA, Ghidra
+    \item Umiejętność czytania i analizy zdekompilowanego pseudokodu
+    \item Znajomość dowolnego języka (np. Python) wspomagającego rozwiązywanie zadań CTF
+\end{itemize}
+
 \subsection{500-secret-shell}
+
+\begin{itemize}
+    \item Działanie systemu Linux, m.in. uprawnienia i atrybut setuid
+    \item Znajomość konstrukcji ramki stosu w programie
+    \item Podstawowa znajomość ataków przepełnienia bufora z nadpisaniem adresu powrotu funkcji
+\end{itemize}
+
 \subsection{600-vm}
+
+\begin{itemize}
+    \item Znajomość działania procesorów i maszyn wirtualnych
+    \item Umiejętność napisania prostego deasemblera
+    \item Czytanie kodu w nieznanym wcześniej języku
+\end{itemize}
+
+\section{Wymagania niefunkcjonalne}
+
+\subsection{Prostota postawienia platformy}
+
+Postawienie platformy powinno być możliwe poprzez uruchomienie gotowego
+dockerowego kontenera, a wgranie zadań dostępne w łatwy sposób
+poprzez interfejs platformy.
+
+\subsection{Możliwość logowania i rejestracji użytkowników}
+
+Użytkownicy powinni mieć możliwość utworzenia konta w celu
+śledzenia swojego postępu w rozwiązywaniu zadań.
+
+\subsection{Możliwość administrowania platformy}
+
+Platforma powinna udostępniać panel administratora na którym
+można zarządzać użytkownikami i podglądać statystyki rozwiązywanych
+zadań.
 
 \chapter{Wybrane aspekty realizacji}
 
-\section{Wprowadzenie}
-
-W tym rozdziale przedstawione zostaną sposoby tworzenia poszczególnych zadań.
+W tym rozdziale przedstawiona zostanie wybrana platforma oraz
+sposoby tworzenia poszczególnych zadań.
 Warto dodać również, że przestawione flagi są w formacie \emph{AGH\{nazwa-zadania\}},
 aby nie wyjawiać prawdziwych flag użytych w rozgrywce.
-Przykładowe rozwiązania zadań znajdują się w rozdziale 5 -- \nameref{chap:writeups}.
+Przykładowe rozwiązania zadań znajdują się w dodatku \nameref{chap:writeups}.
+
+\section{Platforma}
+
+Do przeglądarkowego interfejsu użytkownika skorzystamy z gotowej
+platformy CTFd\footnote{\url{https://ctfd.io/}}.
+Finalny produkt będzie dostępny pod adresem
+\href{https://ctf.szczygiel.dev/}{https://ctf.szczygiel.dev/}.
+Strona postawiona będzie na prywatnym serwerze VPS. Platforma będzie
+uruchomiona w środowisku Docker, a wystawiona do świata będzie poprzez serwer
+Caddy\footnote{\url{https://caddyserver.com/}}, który w prosty sposób zapewni nam HTTPS,
+dzięki organizacji Let's Encrypt\footnote{\url{https://letsencrypt.org/}}.
+Platformę uruchamia się jedynie poleceniem \mintinline{text}{docker-compose up},
+a jedyną konfiguracją serwera Caddy jest ustawienie odwrotnego
+pośrednika (ang. reverse proxy) z wystawionego przez kontener portu \emph{8000}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=8cm]{ctfd}
+\caption{Przykładowe zadanie na stronie demonstracyjnej CTFd}
+\end{figure}
 
 \section{Zadanie 100-simple}
 
@@ -605,7 +674,7 @@ typedef struct VM {
 
 Stan naszej maszyny będzie przechowywany w strukturze \emph{VM}. Zawiera ona kilka zmiennych
 potrzebnych do jej prawidłowego działania. Tablica \emph{mem} będzie zawierała pamięć operacyjną --
-wczytywany będzie do niej program. Wskaźnik \emph{ip}, czyli instruction pointer (ang. licznik programu)
+wczytywany będzie do niej program. Wskaźnik \emph{ip}, czyli licznik progrmau (ang. instruction pointer)
 wskazywać będzie na adres aktualnie wykonywanej instrukcji -- odpowiednik rejestru \emph{EIP}
 w 32 bitowych procesorach x86. Warto też dodać, że nasza maszyna będzie maszyną stosową
 -- operacje będą wykonywane na stosie i nie będzie ona posiadać rejestrów pomocniczych.
@@ -969,16 +1038,57 @@ $ gcc -g -std=c99 vm.c -o vm
 
 \chapter{Organizacja pracy}
 
-\chapter{Przykłady rozwiązań zadań}
+Pracę nad projektem rozpocząłem na szóstym semestrze od zrobienia zadania \emph{600-vm}.
+Proces planowania tego zadania rozpocząłem od wymyślenia jak będzie wyglądało
+przykładowe rozwiązanie zadania od strony użytkownika
+końcowego -- jakich narzędzi mógłby przykładowo użyć i w jaki konkretny sposób ich wykorzystać
+w celu zdobycia flagi. Następnie przystąpiłem do implementacji programu.
+To zadanie z racji największego poziomu trudności zajęło mi
+najwięcej czasu. Pierwotnym pomysłem było stworzenie maszyny wirtualnej z rejestrami
+i napisanie na nią programu we własnym asemblerze podobnym do x86. Zmieniłem jednak
+zdanie i napisałem od początku maszynę wirtualną opartą o stos zamiast rejestry.
+Dzięki temu zadania było ciekawsze do rozwiązywania.
+Jako systemu kontroli wersji użyłem narzędzia
+Git\footnote{\url{https://git-scm.com/}} wraz z hostowaniem na platformie GitHub\footnote{
+\url{https://github.com/piotrek-szczygiel/bachelor-thesis}}.
+
+Kiedy miałem gotowe pierwsze zadanie, musiałem wymyślić sposób udostępniania zadań
+dla uczestników. Po przeglądnięciu kilku projektów zdecydowałem się skorzystać
+z platformy CTFd, ponieważ była jedyną spełniającą moje warunki -- darmowa, aktualizowana
+na bieżąco oraz możliwa uruchomienia w kontenerze dockerowym.
+
+Po wybraniu odpowiedniej platformy uruchomiłem ją na własnym serwerze i skonfigurowałem
+domenę \emph{\url{https://ctf.szczygiel.dev/}}, aby wskazywała na uruchomioną już platformę.
+Wrzuciłem tam pierwsze zadanie i po przetestowaniu działania strony uznałem, że sprawdzi
+się dobrze do celów projektu.
+
+Na siódmym semestrze mogłem się więc skupić już tylko na tworzeniu
+nowych zadań. Zaplanowałem sobie, że będę je tworzył w kolejności od najłatwiejszego
+do najtrudniejszego. Kiedy wpadł mi do głowy jakiś pomysł na zadanie, próbowałem
+je zaimplementować, a następnie samemu rozwiązać i ocenić, czy nadaję się do projektu.
+Zacząłem od zadań z najniższym poziomem trudności. Proces tworzenia wyglądał
+podobnie jak poprzednio. Wymyślałem sposób rozwiązania zadania o odpowiednim poziomie
+trudności, a następnie implementowałem program w taki sposób, aby użytkownik był
+w stanie je rozwiązać używając założonych metod.
+Kiedy skończyłem implementacje sześciu zadań, sprawdziłem swoich sił i
+ponownie po kolei próbowałem sam rozwiązać każde zadanie.
+Przy tej okazji naniosłem dużo poprawek do programów,
+które miały na celu dostosowanie poziomu trudności każdego zadania. W trakcie
+pisania dokumentacji nie chciałem umieszczać flag, które będą rozwiązaniami na stronie.
+W tym celu więc tymczasowo zmieniłem każdy program, aby prawidłową flagą była
+sama nazwa zadania. Po opisaniu procesu rozwiązywania zadań wraz ze zrzutami ekranu
+przywróciłem programy do wersji z pierwotnymi flagami.
+
+\begin{appendices}
+\chapter{Przykładowe rozwiązania zadań}
 \label{chap:writeups}
 
-\section{Wprowadzenie}
-
-W tym rozdziale przedstawione zostaną przykładowe sposoby rozwiązania poszczególnych zadań.
+W tym dodatku przedstawione zostaną przykładowe sposoby rozwiązania poszczególnych zadań.
 Podobnie jak w rozdziale opisującym proces tworzenia tych zadań, znalezione
 flagi są przykładowe.
 
-Aby rozpocząć rozwiązywać zadania użytkownik musi się udać na stronę z zadaniami.
+Aby rozpocząć rozwiązywanie zadań użytkownik musi się udać na stronę internetową
+projektu -- \url{https://ctf.szczygiel.dev/}.
 
 \begin{figure}[H]
 \centering
@@ -1844,7 +1954,7 @@ oraz schemat zawartości stosu.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=12cm]{600_stack}
+\includegraphics[width=10cm]{600_stack}
 \caption{Zawartość stosu w poszczególnych etapach działania programu}
 \label{fig:600_stack}
 \end{figure}
@@ -1881,15 +1991,14 @@ $ python solve.py
 AGH{600-vm}
 \end{minted}
 
+\end{appendices}
+
 \backmatter
 
 \cleardoublepage
 \listoffigures
 
 %\cleardoublepage
-%\listoftables
-
-\cleardoublepage
-\printbibliography
+%\printbibliography
 
 \end{document}
