@@ -104,7 +104,7 @@ pdfencoding=unicode}
 	\renewcommand*{\tableautorefname}{Tablica}
 }{}
 \iftoggle{aghmodern@eng}{
-	\gdef\@thesistype{PRACA INŻYNIERSKA}
+	\gdef\@thesistype{PROJEKT DYPLOMOWY}
 }{} 
 
 \iftoggle{aghmodern@english}{

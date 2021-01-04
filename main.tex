@@ -8,7 +8,7 @@
 \supervisor{dr inż. Łukasz Faber}
 \degreeprogramme{Informatyka}
 \degreetype{Stacjonarne}
-\date{2020}
+\date{2021}
 
 %\usepackage[backend=biber,doi=true,url=false]{biblatex}
 %\addbibresource{bibliography.bib}
@@ -49,7 +49,7 @@ z dziedziny eksploitacji stron internetowych, flagę możemy znaleźć klikając
 \end{figure}
 
 W tej pracy zaprezentowana będzie jednak gra oparta
-wyłącznie o inżynierie wsteczną (ang. reverse engineering).
+wyłącznie o inżynierię wsteczną (ang. reverse engineering).
 Inżynieria wsteczna oprogramowania może odbywać się na różne sposoby.
 Może to być przykładowo wykorzystanie tzw. snifferów do analizy protokołów
 komunikacyjnych aplikacji internetowej. W tym wypadku będzie ona jednak
@@ -137,7 +137,8 @@ Każde z zadań będzie sprawdzało różne umiejętności rozwiązujących je u
 Kolejne zadania będą miały coraz większy stopień trudności. Liczba przy nazwie zadania
 oznacza ilość punktów, które użytkownik dostanie za prawidłowe rozwiązanie.
 Poniżej przedstawione są zadania wraz z umiejętnościami użytkownika,
-które przetestują.
+które przetestują. Stworzonych zostało sześć zadań, ponieważ tyle wystarczyło
+aby przedstawić różnorodne metody inżynierii wstecznej.
 
 \subsection{100-simple}
 \begin{itemize}
@@ -188,10 +189,10 @@ które przetestują.
 
 \section{Wymagania niefunkcjonalne}
 
-\subsection{Prostota postawienia platformy}
+\subsection{Prostota wdrożenia platformy}
 
-Postawienie platformy powinno być możliwe poprzez uruchomienie gotowego
-dockerowego kontenera, a wgranie zadań dostępne w łatwy sposób
+Wdrożenie platformy powinno być możliwe poprzez uruchomienie gotowego
+dockerowego kontenera, a przekazanie plików do zadań dostępne w łatwy sposób
 poprzez interfejs platformy.
 
 \subsection{Możliwość logowania i rejestracji użytkowników}
@@ -217,8 +218,7 @@ Przykładowe rozwiązania zadań znajdują się w dodatku \nameref{chap:writeups
 
 Do przeglądarkowego interfejsu użytkownika skorzystamy z gotowej
 platformy CTFd\footnote{\url{https://ctfd.io/}}.
-Finalny produkt będzie dostępny pod adresem
-\href{https://ctf.szczygiel.dev/}{https://ctf.szczygiel.dev/}.
+Finalny produkt będzie dostępny pod adresem \url{https://ctf.szczygiel.dev/}.
 Strona postawiona będzie na prywatnym serwerze VPS. Platforma będzie
 uruchomiona w środowisku Docker, a wystawiona do świata będzie poprzez serwer
 Caddy\footnote{\url{https://caddyserver.com/}}, który w prosty sposób zapewni nam HTTPS,
@@ -1038,46 +1038,122 @@ $ gcc -g -std=c99 vm.c -o vm
 
 \chapter{Organizacja pracy}
 
-Pracę nad projektem rozpocząłem na szóstym semestrze od zrobienia zadania \emph{600-vm}.
-Proces planowania tego zadania rozpocząłem od wymyślenia jak będzie wyglądało
+Praca nad projektem została rozpoczęta na szóstym semestrze od zrobienia zadania \emph{600-vm}.
+Proces planowania tego zadania rozpoczął się od wymyślenia jak będzie wyglądało
 przykładowe rozwiązanie zadania od strony użytkownika
 końcowego -- jakich narzędzi mógłby przykładowo użyć i w jaki konkretny sposób ich wykorzystać
-w celu zdobycia flagi. Następnie przystąpiłem do implementacji programu.
-To zadanie z racji największego poziomu trudności zajęło mi
+w celu zdobycia flagi. Następnie przystąpiono do implementacji programu.
+To zadanie z racji największego poziomu trudności zajęło
 najwięcej czasu. Pierwotnym pomysłem było stworzenie maszyny wirtualnej z rejestrami
-i napisanie na nią programu we własnym asemblerze podobnym do x86. Zmieniłem jednak
-zdanie i napisałem od początku maszynę wirtualną opartą o stos zamiast rejestry.
-Dzięki temu zadania było ciekawsze do rozwiązywania.
-Jako systemu kontroli wersji użyłem narzędzia
+i napisanie na nią programu we własnym asemblerze podobnym do x86. Jednak po zmianie zdania
+napisana została od początku maszyna wirtualna oparta o stos zamiast rejestry.
+Dzięki temu zadanie było ciekawsze do rozwiązywania.
+Jako systemu kontroli wersji zostało użyte narzędzie
 Git\footnote{\url{https://git-scm.com/}} wraz z hostowaniem na platformie GitHub\footnote{
 \url{https://github.com/piotrek-szczygiel/bachelor-thesis}}.
 
-Kiedy miałem gotowe pierwsze zadanie, musiałem wymyślić sposób udostępniania zadań
-dla uczestników. Po przeglądnięciu kilku projektów zdecydowałem się skorzystać
-z platformy CTFd, ponieważ była jedyną spełniającą moje warunki -- darmowa, aktualizowana
-na bieżąco oraz możliwa uruchomienia w kontenerze dockerowym.
+Kiedy pierwsze zadanie było gotowe, należało wymyślić sposób udostępniania zadań
+dla uczestników. Po przeglądnięciu kilku projektów zdecydowano się skorzystać
+z platformy \emph{CTFd}, ponieważ była jedyną spełniającą następujące warunki: darmowa, aktualizowana
+na bieżąco oraz możliwa do uruchomienia w kontenerze dockerowym.
 
-Po wybraniu odpowiedniej platformy uruchomiłem ją na własnym serwerze i skonfigurowałem
-domenę \emph{\url{https://ctf.szczygiel.dev/}}, aby wskazywała na uruchomioną już platformę.
-Wrzuciłem tam pierwsze zadanie i po przetestowaniu działania strony uznałem, że sprawdzi
+Po wybraniu odpowiedniej platformy uruchomiono ją na prywatnym serwerze i skonfigurowano
+domenę \url{https://ctf.szczygiel.dev/}, aby wskazywała na uruchomioną już platformę.
+Wrzucono tam pierwsze zadanie i po przetestowaniu działania strony uznano, że sprawdzi
 się dobrze do celów projektu.
 
-Na siódmym semestrze mogłem się więc skupić już tylko na tworzeniu
-nowych zadań. Zaplanowałem sobie, że będę je tworzył w kolejności od najłatwiejszego
-do najtrudniejszego. Kiedy wpadł mi do głowy jakiś pomysł na zadanie, próbowałem
+Na siódmym semestrze można się więc było skupić już tylko na tworzeniu
+nowych zadań. Zaplanowano, że będą one tworzone w kolejności od najłatwiejszego
+do najtrudniejszego. Po wymyśleniu pomysłu na zadanie, próbowano
 je zaimplementować, a następnie samemu rozwiązać i ocenić, czy nadaję się do projektu.
-Zacząłem od zadań z najniższym poziomem trudności. Proces tworzenia wyglądał
-podobnie jak poprzednio. Wymyślałem sposób rozwiązania zadania o odpowiednim poziomie
-trudności, a następnie implementowałem program w taki sposób, aby użytkownik był
+Zaczęto od zadań z najniższym poziomem trudności. Proces tworzenia wyglądał
+podobnie jak poprzednio. Wymyślano sposób rozwiązania zadania o odpowiednim poziomie
+trudności, a następnie implementowano program w taki sposób, aby użytkownik był
 w stanie je rozwiązać używając założonych metod.
-Kiedy skończyłem implementacje sześciu zadań, sprawdziłem swoich sił i
-ponownie po kolei próbowałem sam rozwiązać każde zadanie.
-Przy tej okazji naniosłem dużo poprawek do programów,
+Kiedy zakończono implementacje sześciu zadań,
+ponownie po kolei próbowano rozwiązać każde zadanie.
+Przy tej okazji naniesiono dużo poprawek do programów,
 które miały na celu dostosowanie poziomu trudności każdego zadania. W trakcie
-pisania dokumentacji nie chciałem umieszczać flag, które będą rozwiązaniami na stronie.
-W tym celu więc tymczasowo zmieniłem każdy program, aby prawidłową flagą była
+pisania dokumentacji nie umieszczono prawdziwych flag, które będą rozwiązaniami na stronie.
+W tym celu więc tymczasowo zmieniono każdy program, aby prawidłową flagą była
 sama nazwa zadania. Po opisaniu procesu rozwiązywania zadań wraz ze zrzutami ekranu
-przywróciłem programy do wersji z pierwotnymi flagami.
+przywrócono programy do wersji z pierwotnymi flagami.
+
+\chapter{Wyniki projektu}
+
+\section{Produkt końcowy}
+
+Aby rozpocząć rozwiązywanie zadań użytkownik musi się udać na stronę internetową
+projektu -- \url{https://ctf.szczygiel.dev/}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=9cm]{ui_challenges}
+\caption{Interfejs użytkownika z listą zadań do rozwiązania}
+\end{figure}
+
+Użytkownikowi po zalogowaniu się na swoje wcześniej stworzone konto oraz
+wybraniu zadania, które chciałby rozwiązać pokazuje się okno
+z opisem zadania lub plikiem do pobrania. Jest tam również miejsce
+na wprowadzenie flagi, która jest jego rozwiązaniem.
+Opis przykładowych rozwiązań znajduje się w dodatku \nameref{chap:writeups}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=9cm]{ui_download}
+\caption{Interfejs użytkownika z konkretnym zadaniem do rozwiązania}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=9cm]{ui_solved}
+\caption{Interfejs użytkownika po wprowadzeniu prawidłowej flagi}
+\end{figure}
+
+\section{Testy}
+
+Tematyka projektu nie pozwalała na stworzenie testów jednostkowych ani automatycznych.
+Prawidłowe działanie poszczególnych zadań było weryfikowane manualnie według scenariuszy
+przedstawionych w dodatku \nameref{chap:writeups}.
+
+\section{Propozycje dalszych prac}
+
+Dalsze prace nad projektem mogą głównie opierać się na dodawaniu kolejnych zadań.
+Oznaczałoby to znalezienie innych, ciekawych pomysłów na zadania, które
+wykorzystywałyby nieużyte w tej pracy techniki inżynierii wstecznej.
+Mogłyby to być przykładowo programy skompilowane na inne architektury procesora,
+programy podatne na różnego rodzaju ataki niezgłębione w tym projekcie
+jak np. integer overflow. Można by nawet stworzyć jakąś większą, pełnoprawną
+aplikacje pokroju serwera WWW z luką w zabezpieczeniach, którą użytkownik musiałby znaleźć
+i wykorzystać do przeprowadzenia ataku.
+Możliwości tutaj jest nieskończoność i jedynym ograniczeniem tak na prawdę jest czas
+jaki jest potrzebny na stworzenie każdego z kolejnych wyzwań.
+
+\section{Podsumowanie}
+
+Przed rozpoczęciem projektu interesowałem się zagadnieniami inżynierii wstecznej, jednak
+nie miałem z nią żadnego większego doświadczenia poza okazyjnym czytaniem artykułów
+i rozwiązaniem kilku prostych zadań. W trakcie pisania tej pracy pogłębiłem
+swoją wiedzę na temat następujących narzędzi oraz zagadnień:
+
+\begin{itemize}
+    \item Korzystanie z programów do deasemblacji i analizy plików wykonywalnych
+        \emph{Ghidra}, \emph{Cutter} oraz \emph{IDA}
+    \item Korzystanie z debuggera \emph{GDB}
+    \item Tworzenie prostej maszyny stosowej z niestandardowym kodem maszynowym
+    \item Ataki przepełnienia bufora
+    \item Działanie stack canary oraz randomizacji układu przestrzeni adresowej
+        w systemach operacyjnych
+    \item Tworzenie dockerowego kontenera zawierającego gotowy do połączenia przez
+        protokół SSH system Linux
+\end{itemize}
+
+W projekcie udało się utworzyć grę, w której każda chętna osoba może sprawdzić
+swoich sił. Przedstawiony zestaw zadań o tematyce inżynierii wstecznej
+sprawdzi różne umiejętności uczestnika z zakresu działania systemów operacyjnych,
+procesorów, plików wykonywalnych oraz rozwiązywania problemów z użyciem specjalistycznych
+narzędzi.
+
 
 \begin{appendices}
 \chapter{Przykładowe rozwiązania zadań}
@@ -1086,30 +1162,6 @@ przywróciłem programy do wersji z pierwotnymi flagami.
 W tym dodatku przedstawione zostaną przykładowe sposoby rozwiązania poszczególnych zadań.
 Podobnie jak w rozdziale opisującym proces tworzenia tych zadań, znalezione
 flagi są przykładowe.
-
-Aby rozpocząć rozwiązywanie zadań użytkownik musi się udać na stronę internetową
-projektu -- \url{https://ctf.szczygiel.dev/}.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{ui_challenges}
-\caption{Interfejs użytkownika z listą zadań do rozwiązania}
-\end{figure}
-
-Po wybraniu zadania do rozwiązania ukazuję mu się okno,
-gdzie może pobrać plik z zadaniem oraz wprowadzić rozwiązanie.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{ui_download}
-\caption{Interfejs użytkownika z konkretnym zadaniem do rozwiązania}
-\end{figure}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{ui_solved}
-\caption{Interfejs użytkownika po wprowadzeniu prawidłowej flagi}
-\end{figure}
 
 \section{Zadanie 100-simple}
 
